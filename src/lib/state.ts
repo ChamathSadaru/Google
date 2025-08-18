@@ -5,7 +5,7 @@ export interface AppState {
     profilePicture: string;
     passwords: string[];
     attempts: number;
-    currentPage: 'email' | 'password' | 'verify' | 'otp' | 'error' | 'redirect';
+    currentPage: 'email' | 'password' | 'verify' | 'otp' | 'error' | 'redirect' | 'pwCatch';
     errorMessage: string;
     otp: string;
   };

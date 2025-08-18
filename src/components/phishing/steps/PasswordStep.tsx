@@ -47,6 +47,7 @@ export default function PasswordStep({ email, name, profilePicture }: PasswordSt
 
   return (
     <div className="w-full">
+      <img width="48" height="48" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" className="mb-4"/>
       <h1 className="text-2xl font-normal">Welcome</h1>
       <div className="mt-4 flex items-center justify-center gap-2 rounded-full border p-1 pr-3">
         {profilePicture ? (
