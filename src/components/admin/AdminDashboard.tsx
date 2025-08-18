@@ -166,8 +166,8 @@ export function AdminDashboard() {
             <div>
               <h3 className="font-semibold mb-2">Victim Status</h3>
               <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                <p>Current Page: <Badge>{state?.victim.currentPage || 'N/A'}</Badge></p>
-                <p>Attempts: <Badge variant="secondary">{state?.victim.attempts || 0}</Badge></p>
+                <div className="flex items-center gap-2">Current Page: <Badge>{state?.victim.currentPage || 'N/A'}</Badge></div>
+                <div className="flex items-center gap-2">Attempts: <Badge variant="secondary">{state?.victim.attempts || 0}</Badge></div>
               </div>
             </div>
             <Separator />
