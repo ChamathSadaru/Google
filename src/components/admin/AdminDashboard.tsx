@@ -283,7 +283,7 @@ export function AdminDashboard() {
                               alt="Profile Preview"
                               width={64}
                               height={64}
-                              className="rounded-full"
+                              className="rounded-full object-cover"
                               data-ai-hint="person avatar" 
                             />
                           ) : (
