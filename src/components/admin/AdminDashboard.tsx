@@ -95,45 +95,28 @@ export function AdminDashboard() {
 
   const uploadImage = async (file: File): Promise<string | null> => {
     setIsUploading(true);
-    const reader = new FileReader();
-    return new Promise((resolve) => {
-      reader.onload = async (event) => {
-        const base64Image = (event.target?.result as string).split(",")[1];
-        if (!base64Image) {
-            toast({ variant: "destructive", title: "Error", description: "Could not read image file."});
-            setIsUploading(false);
-            resolve(null);
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("key", "6d207e02198a847aa98d0a2a901485a5");
-        formData.append("source", base64Image);
-        
-        try {
-          const response = await fetch("https://freeimage.host/api/1/upload", {
-            method: "POST",
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
             body: formData,
-          });
-
-          const result = await response.json();
-          if (result.status_code === 200) {
-            resolve(result.image.url);
-          } else {
+        });
+        const result = await response.json();
+        if (response.ok) {
+            return result.url;
+        } else {
             console.error("Image upload failed:", result);
-            toast({ variant: "destructive", title: "Upload Failed", description: result.error.message });
-            resolve(null);
-          }
-        } catch (error) {
-          console.error("Image upload failed:", error);
-          toast({ variant: "destructive", title: "Error", description: "Could not upload image." });
-          resolve(null);
-        } finally {
-          setIsUploading(false);
+            toast({ variant: 'destructive', title: 'Upload Failed', description: result.error || 'Unknown error' });
+            return null;
         }
-      };
-      reader.readAsDataURL(file);
-    });
+    } catch (error) {
+        console.error('Image upload failed:', error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not upload image.' });
+        return null;
+    } finally {
+        setIsUploading(false);
+    }
   };
 
   const onConfigSubmit: SubmitHandler<ConfigFormData> = async (data) => {
@@ -373,5 +356,3 @@ export function AdminDashboard() {
     </div>
   );
 }
-
-    
