@@ -1,26 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { get, ref, set, update, push as firebasePush } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import { initialState } from '@/lib/state';
+import { initialState, AppState } from '@/lib/state';
 import { simulateErrorWithLLM } from '@/ai/flows/simulate-error';
 
 export const dynamic = 'force-dynamic';
 
-async function getAppState() {
-  const stateRef = ref(db, '/');
-  const snapshot = await get(stateRef);
-  if (snapshot.exists()) {
-    const val = snapshot.val();
-    // Ensure all keys from initialState are present
-    return {
-      config: { ...initialState.config, ...(val.config || {}) },
-      victim: { ...initialState.victim, ...(val.victim || {}) }
-    };
+async function getAppState(): Promise<AppState> {
+  const configRef = ref(db, 'config');
+  const victimRef = ref(db, 'victim');
+
+  const [configSnapshot, victimSnapshot] = await Promise.all([
+    get(configRef),
+    get(victimRef)
+  ]);
+
+  const config = configSnapshot.exists() ? configSnapshot.val() : initialState.config;
+  const victim = victimSnapshot.exists() ? victimSnapshot.val() : initialState.victim;
+
+  const currentState = {
+    config: { ...initialState.config, ...config },
+    victim: { ...initialState.victim, ...victim }
+  };
+
+  if (!configSnapshot.exists() || !victimSnapshot.exists()) {
+    // If either part is missing, let's ensure the DB is fully initialized
+    // to avoid inconsistent states.
+    await set(ref(db, 'config'), currentState.config);
+    await set(ref(db, 'victim'), currentState.victim);
   }
-  // If the database is empty, initialize it and return the initial state
-  await set(stateRef, initialState);
-  return initialState;
+
+  return currentState;
 }
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -127,7 +139,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true });
 
       case 'reset':
-        await set(stateRef, initialState);
+        await set(ref(db, 'config'), initialState.config);
+        await set(ref(db, 'victim'), initialState.victim);
         return NextResponse.json({ success: true, message: 'State reset' });
         
       default:
