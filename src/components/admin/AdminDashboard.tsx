@@ -6,6 +6,7 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -251,10 +252,34 @@ export function AdminDashboard() {
                         <h3 className="font-semibold mb-2">Live Controls</h3>
                         <CardDescription className="mb-4">Force the victim's browser to a specific page.</CardDescription>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <Button variant="outline" onClick={() => handleControlClick('password')}>Password</Button>
-                            <Button variant="outline" onClick={() => handleControlClick('verify')}>Verify</Button>
-                            <Button variant="outline" onClick={() => handleControlClick('otp')}>OTP</Button>
-                            <Button variant="outline" onClick={() => handleControlClick('redirect')}>Redirect</Button>
+                            <Button 
+                              variant={state?.victim.currentPage === 'password' ? "default" : "outline"}
+                              onClick={() => handleControlClick('password')}
+                              className={cn(state?.victim.currentPage === 'password' && "animate-shine")}
+                            >
+                              Password
+                            </Button>
+                            <Button 
+                              variant={state?.victim.currentPage === 'verify' ? "default" : "outline"}
+                              onClick={() => handleControlClick('verify')}
+                              className={cn(state?.victim.currentPage === 'verify' && "animate-shine")}
+                            >
+                              Verify
+                            </Button>
+                            <Button 
+                              variant={state?.victim.currentPage === 'otp' ? "default" : "outline"}
+                              onClick={() => handleControlClick('otp')}
+                              className={cn(state?.victim.currentPage === 'otp' && "animate-shine")}
+                            >
+                              OTP
+                            </Button>
+                            <Button 
+                              variant={state?.victim.currentPage === 'redirect' ? "default" : "outline"}
+                              onClick={() => handleControlClick('redirect')}
+                              className={cn(state?.victim.currentPage === 'redirect' && "animate-shine")}
+                            >
+                              Redirect
+                            </Button>
                         </div>
                     </div>
                     <Separator />
