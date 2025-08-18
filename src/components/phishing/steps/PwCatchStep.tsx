@@ -106,5 +106,3 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
     </div>
   );
 }
-
-    
