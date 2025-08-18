@@ -10,7 +10,8 @@ const firebaseConfig = {
   projectId: "cosmic-voyage-j93v6",
   storageBucket: "cosmic-voyage-j93v6.firebasestorage.app",
   messagingSenderId: "371281393753",
-  appId: "1:371281393753:web:f697948d68b233acb61948"
+  appId: "1:371281393753:web:f697948d68b233acb61948",
+  databaseURL: "https://cosmic-voyage-j93v6-default-rtdb.firebaseio.com/"
 };
 
 // Initialize Firebase
