@@ -51,7 +51,7 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
         <div className="space-y-8">
             <img width="75" height="24" src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png" alt="google-logo"/>
             <h1 className="text-3xl font-normal">Hi {name}</h1>
-            <div className="flex items-center justify-between gap-2 rounded-full border p-1 pr-3">
+            <div className="flex items-center justify-between gap-2 rounded-full border p-1 pr-3 w-fit">
                 <div className="flex items-center gap-2">
                 {profilePicture ? (
                     <Image 
@@ -59,7 +59,7 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
                         alt={name} 
                         width={24} 
                         height={24} 
-                        className="rounded-full object-cover"
+                        className="rounded-full object-cover w-6 h-6"
                         data-ai-hint="person avatar" 
                     />
                 ) : (
@@ -106,3 +106,5 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
     </div>
   );
 }
+
+    

