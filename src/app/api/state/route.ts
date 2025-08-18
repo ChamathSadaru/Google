@@ -17,7 +17,7 @@ async function getAppState() {
       victim: { ...initialState.victim, ...(val.victim || {}) }
     };
   }
-  // If the database is empty, return the initial state
+  // If the database is empty, initialize it and return the initial state
   await set(stateRef, initialState);
   return initialState;
 }
@@ -46,7 +46,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid view' }, { status: 400 });
   } catch (error) {
     console.error("Error in GET /api/state:", error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ error: 'Internal Server Error', details: errorMessage }, { status: 500 });
   }
 }
 
