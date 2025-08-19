@@ -9,19 +9,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, UserCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const passwordSchema = z.object({
   password: z.string().min(1, { message: "Please enter your password." }),
 });
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
-type PasswordStepProps = {
+type LoginStepProps = {
   email: string;
   name: string;
   profilePicture: string;
 };
 
-export default function PasswordStep({ email, name, profilePicture }: PasswordStepProps) {
+export default function LoginStep({ email, name, profilePicture }: LoginStepProps) {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
@@ -47,7 +48,8 @@ export default function PasswordStep({ email, name, profilePicture }: PasswordSt
 
   return (
     <div className="w-full">
-      <h1 className="text-2xl font-normal">Welcome</h1>
+      <img width="48" height="48" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" className="mb-4 mx-auto"/>
+      <h1 className="text-2xl font-normal text-center">Welcome</h1>
       <div className="mt-4 flex items-center justify-center gap-2 rounded-full border p-1 pr-3 w-fit mx-auto">
         {profilePicture ? (
             <Image 
@@ -73,15 +75,18 @@ export default function PasswordStep({ email, name, profilePicture }: PasswordSt
             {...register("password")}
             className="h-14 pt-2 text-base pr-12"
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground"
-          >
-            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-          </button>
         </div>
-        {errors.password && <p className="text-sm text-destructive mt-1 px-1 text-left">{errors.password.message}</p>}
+         {errors.password && <p className="text-sm text-destructive mt-1 px-1 text-left">{errors.password.message}</p>}
+        
+        <div className="flex items-center space-x-2">
+            <Checkbox id="show-password" onCheckedChange={() => setShowPassword(!showPassword)} />
+            <label
+                htmlFor="show-password"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+                Show password
+            </label>
+        </div>
         
         <div className="flex justify-between items-center pt-4">
           <Button variant="ghost" className="text-primary -ml-4">Forgot password?</Button>
