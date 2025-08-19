@@ -316,7 +316,7 @@ export function AdminDashboard() {
 
   const attackLog = getAttackLog();
   const capturedPasswords = state?.victim.passwords ? 
-    Object.entries(state.victim.passwords).map(([id, data]) => ({ id, ...data })) 
+    Object.entries(state.victim.passwords).map(([id, data]) => ({ id, ...data as any })) 
     : [];
 
   return (
