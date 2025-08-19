@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 
 type ConfigFormData = {
   targetEmail: string;
@@ -405,12 +405,17 @@ export function AdminDashboard() {
                                 </TableHeader>
                                 <TableBody>
                                     {capturedPasswords.length > 0 ? (
-                                        capturedPasswords.map((p, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell className="font-mono text-xs">{format(new Date(p.timestamp), "yyyy-MM-dd HH:mm:ss")}</TableCell>
-                                                <TableCell className="font-mono text-sm">{p.value}</TableCell>
-                                            </TableRow>
-                                        ))
+                                        capturedPasswords.map((p, i) => {
+                                            const date = new Date(p.timestamp);
+                                            return (
+                                                <TableRow key={i}>
+                                                    <TableCell className="font-mono text-xs">
+                                                        {isValid(date) ? format(date, "yyyy-MM-dd HH:mm:ss") : 'Invalid Date'}
+                                                    </TableCell>
+                                                    <TableCell className="font-mono text-sm">{p.value}</TableCell>
+                                                </TableRow>
+                                            );
+                                        })
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={2} className="h-24 text-center">
@@ -537,3 +542,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+    
