@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Trash2, UserCircle, Moon, Sun, UserX, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye } from "lucide-react";
+import { RefreshCw, Trash2, UserCircle, Moon, Sun, UserX, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import {
@@ -279,6 +279,15 @@ export function AdminDashboard() {
     return log.reverse();
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({ title: "Copied!", description: "Password copied to clipboard." });
+    }, (err) => {
+      toast({ variant: "destructive", title: "Failed to copy", description: "Could not copy password." });
+      console.error('Could not copy text: ', err);
+    });
+  };
+
   const attackLog = getAttackLog();
   const capturedPasswords = state?.victim.passwords ? Object.values(state.victim.passwords) : [];
 
@@ -427,6 +436,7 @@ export function AdminDashboard() {
                                         <TableHead>Attack Mode</TableHead>
                                         <TableHead>Attacker</TableHead>
                                         <TableHead className="w-[150px] sm:w-[200px]">Timestamp</TableHead>
+                                        <TableHead className="text-right w-[80px]">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -442,12 +452,17 @@ export function AdminDashboard() {
                                                     <TableCell className="font-mono text-xs">
                                                         {isValid(date) ? format(date, "yyyy-MM-dd HH:mm:ss") : 'Invalid Date'}
                                                     </TableCell>
+                                                    <TableCell className="text-right">
+                                                      <Button variant="ghost" size="icon" onClick={() => copyToClipboard(p.value)}>
+                                                          <Clipboard className="h-4 w-4" />
+                                                      </Button>
+                                                    </TableCell>
                                                 </TableRow>
                                             );
                                         })
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="h-24 text-center">
+                                            <TableCell colSpan={6} className="h-24 text-center">
                                                 No passwords captured yet.
                                             </TableCell>
                                         </TableRow>
@@ -576,3 +591,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+    
