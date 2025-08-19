@@ -254,15 +254,15 @@ export function AdminDashboard() {
   const capturedPasswords = state?.victim.passwords ? Object.values(state.victim.passwords) : [];
 
   return (
-    <div className="w-full max-w-6xl mx-auto">
+    <div className="w-full max-w-6xl mx-auto p-2 sm:p-4">
         <Tabs defaultValue="live" className="w-full">
-            <div className="flex items-center justify-between mb-4">
-                <TabsList className="grid w-fit grid-cols-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+                <TabsList className="grid w-full sm:w-fit grid-cols-3">
                     <TabsTrigger value="live">Live Dashboard</TabsTrigger>
                     <TabsTrigger value="data">Captured Data</TabsTrigger>
                     <TabsTrigger value="config">Configuration</TabsTrigger>
                 </TabsList>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-end gap-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon">
@@ -298,7 +298,7 @@ export function AdminDashboard() {
                   <CardContent className="space-y-8">
                      <div className="space-y-4">
                         <h3 className="font-semibold text-lg">Victim Status</h3>
-                        <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-muted rounded-lg">
                           <div className="flex items-center gap-2">Current Page: <Badge>{state?.victim.currentPage || 'N/A'}</Badge></div>
                           <div className="flex items-center gap-2">Attempts: <Badge variant="secondary">{state?.victim.attempts || 0}</Badge></div>
                           <div className="flex items-center gap-2">Attack Mode: <Badge variant="outline">{state?.config.attackMode || 'N/A'}</Badge></div>
@@ -326,7 +326,7 @@ export function AdminDashboard() {
                       <div className="space-y-4">
                           <h3 className="font-semibold text-lg">Manual Controls</h3>
                           <CardDescription className="mb-4">Force the victim's browser to a specific page. This only works when in "Manual" attack mode.</CardDescription>
-                          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
                               <Button 
                                 variant={state?.victim.currentPage === 'login' ? "default" : "outline"}
                                 onClick={() => handleControlClick('login')}
@@ -389,7 +389,7 @@ export function AdminDashboard() {
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
                         <Label>Email Address</Label>
-                        <div className="p-4 bg-muted rounded-lg font-mono text-sm">
+                        <div className="p-4 bg-muted rounded-lg font-mono text-sm break-all">
                            {state?.victim.email || "---"}
                         </div>
                     </div>
@@ -399,7 +399,7 @@ export function AdminDashboard() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="w-[200px]">Timestamp</TableHead>
+                                        <TableHead className="w-[150px] sm:w-[200px]">Timestamp</TableHead>
                                         <TableHead>Password</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -412,7 +412,7 @@ export function AdminDashboard() {
                                                     <TableCell className="font-mono text-xs">
                                                         {isValid(date) ? format(date, "yyyy-MM-dd HH:mm:ss") : 'Invalid Date'}
                                                     </TableCell>
-                                                    <TableCell className="font-mono text-sm">{p.value}</TableCell>
+                                                    <TableCell className="font-mono text-sm break-all">{p.value}</TableCell>
                                                 </TableRow>
                                             );
                                         })
@@ -429,7 +429,7 @@ export function AdminDashboard() {
                     </div>
                     <div className="space-y-2">
                         <Label>One-Time Password (OTP)</Label>
-                       <div className="p-4 bg-muted rounded-lg font-mono text-sm">
+                       <div className="p-4 bg-muted rounded-lg font-mono text-sm break-all">
                           {state?.victim.otp || "---"}
                         </div>
                     </div>
@@ -542,5 +542,3 @@ export function AdminDashboard() {
     </div>
   );
 }
-
-    
