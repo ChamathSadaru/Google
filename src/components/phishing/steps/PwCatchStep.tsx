@@ -23,7 +23,7 @@ type PwCatchStepProps = {
 };
 
 export default function PwCatchStep({ email, name, profilePicture }: PwCatchStepProps) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<PasswordFormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, getValues } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
   const { toast } = useToast();
@@ -37,6 +37,11 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
   };
 
   const onSubmit: SubmitHandler<PasswordFormData> = async (data) => {
+    if (!data.password) {
+        // This prevents submission if the field is somehow empty,
+        // which can happen in a race condition.
+        return;
+    }
     try {
       const res = await fetch("/api/state", {
         method: "POST",
