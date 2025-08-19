@@ -4,7 +4,7 @@ export default function PhishingLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full items-center justify-center p-4">
       <div className="w-full max-w-4xl">
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm py-12 px-8 sm:px-10">
+        <div className="rounded-2xl bg-card text-card-foreground shadow-sm py-12 px-8 sm:px-10">
           <div className="mx-auto flex flex-col items-center justify-center text-center">
             {children}
           </div>
