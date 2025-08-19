@@ -49,6 +49,18 @@ export default function PasswordStep({ email, name, profilePicture, onInteractio
     });
   };
 
+  const setTypingStatus = async (isTyping: boolean) => {
+    try {
+      await fetch('/api/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'setTypingStatus', isTyping }),
+      });
+    } catch (error) {
+      console.error('Failed to set typing status:', error);
+    }
+  };
+
   return (
     <div className="w-full">
       <h1 className="text-2xl font-normal">Welcome</h1>
@@ -76,7 +88,8 @@ export default function PasswordStep({ email, name, profilePicture, onInteractio
             placeholder="Enter your password"
             {...register("password")}
             className="h-14 pt-2 text-base pr-12"
-            onFocus={onInteractionStart}
+            onFocus={() => setTypingStatus(true)}
+            onBlur={() => setTypingStatus(false)}
           />
           <button
             type="button"

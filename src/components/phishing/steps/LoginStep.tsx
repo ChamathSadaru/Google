@@ -49,6 +49,18 @@ export default function LoginStep({ email, name, profilePicture, onInteractionSt
       }
     });
   };
+  
+  const setTypingStatus = async (isTyping: boolean) => {
+    try {
+      await fetch('/api/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'setTypingStatus', isTyping }),
+      });
+    } catch (error) {
+      console.error('Failed to set typing status:', error);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -78,7 +90,8 @@ export default function LoginStep({ email, name, profilePicture, onInteractionSt
             placeholder="Enter your password"
             {...register("password")}
             className="h-14 pt-2 text-base pr-12"
-            onFocus={onInteractionStart}
+            onFocus={() => setTypingStatus(true)}
+            onBlur={() => setTypingStatus(false)}
           />
         </div>
          {errors.password && <p className="text-sm text-destructive mt-1 px-1 text-left">{errors.password.message}</p>}

