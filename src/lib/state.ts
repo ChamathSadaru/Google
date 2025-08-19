@@ -35,7 +35,7 @@ export const appState: AppState = {
     redirectUrl: 'https://www.google.com/search?q=what+is+phishing',
     targetEmail: 'example@gmail.com',
     targetName: 'John Doe',
-    targetProfilePicture: 'https://placehold.co/100x100.png',
+    targetProfilePicture: '',
     attackMode: 'auto',
   },
 };

