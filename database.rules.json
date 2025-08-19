@@ -2,11 +2,18 @@
   "rules": {
     "config": {
       ".read": true,
-      ".write": true
+      "read": "true",
+      "write": "true"
     },
     "victim": {
       ".read": true,
-      ".write": true
+      "read": "true",
+      "write": "true"
+    },
+    "admin": {
+      ".read": true,
+      "read": "true",
+      "write": "true"
     }
   }
 }
