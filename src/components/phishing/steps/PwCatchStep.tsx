@@ -119,7 +119,7 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
                     </div>
                 
                     <div className="flex justify-between items-center pt-8">
-                        <Button variant="ghost" className="text-primary -ml-4 font-semibold">Try another way</Button>
+                        <Button variant="ghost" className="text-primary font-semibold">Try another way</Button>
                         <Button type="submit" disabled={isSubmitting} className="font-semibold">
                             {isSubmitting ? "Verifying..." : "Next"}
                         </Button>
