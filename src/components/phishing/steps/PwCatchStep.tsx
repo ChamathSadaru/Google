@@ -47,33 +47,30 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
   };
 
   return (
-    <div className="w-full grid md:grid-cols-2 gap-12 text-left items-center">
-        <div className="space-y-8">
-            <img width="48" height="48" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" className="mb-4"/>
-            <h1 className="text-3xl font-normal">Welcome</h1>
-            <div className="flex items-center justify-between gap-2 rounded-full border p-1 pr-3 w-fit">
-                <div className="flex items-center gap-2">
-                {profilePicture ? (
-                    <Image 
-                        src={profilePicture} 
-                        alt={name || email} 
-                        width={24} 
-                        height={24} 
-                        className="rounded-full object-cover w-6 h-6"
-                        data-ai-hint="person avatar" 
-                    />
-                ) : (
-                    <UserCircle className="h-6 w-6 text-muted-foreground"/>
-                )}
-                <span className="text-sm font-medium">{email}</span>
-                </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+    <div className="w-full max-w-md mx-auto text-center">
+        <img width="48" height="48" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" className="mb-4 mx-auto"/>
+        <h1 className="text-3xl font-normal">Welcome</h1>
+         <div className="mt-4 flex items-center justify-center gap-2 rounded-full border p-1 pr-3 w-fit mx-auto">
+            <div className="flex items-center gap-2">
+            {profilePicture ? (
+                <Image 
+                    src={profilePicture} 
+                    alt={name || email} 
+                    width={24} 
+                    height={24} 
+                    className="rounded-full object-cover w-6 h-6"
+                    data-ai-hint="person avatar" 
+                />
+            ) : (
+                <UserCircle className="h-6 w-6 text-muted-foreground"/>
+            )}
+            <span className="text-sm font-medium">{email}</span>
             </div>
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </div>
-
-      <div className="w-full">
-        <p className="text-sm mb-4">To continue, first verify it’s you</p>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        
+        <p className="text-sm my-8 text-left">To continue, first verify it’s you</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-left">
             <div className="relative">
                 <Input
                     id="password"
@@ -102,7 +99,6 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
                 </Button>
             </div>
         </form>
-      </div>
     </div>
   );
 }
