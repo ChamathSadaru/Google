@@ -216,18 +216,18 @@ export function AdminDashboard() {
     }
   };
 
-  const handleResetState = async () => {
-    if (window.confirm("Are you sure you want to reset all state? This will restore the initial configuration and clear all victim data.")) {
+  const handleResetVictimState = async () => {
+    if (window.confirm("Are you sure you want to reset the victim's session? All captured data for this session will be cleared, but your configuration will be kept.")) {
       try {
         await fetch("/api/state", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "reset" }),
+          body: JSON.stringify({ action: "clearVictimData" }),
         });
-        toast({ title: "State Reset", description: "The application state has been restored to default." });
+        toast({ title: "Victim Session Reset", description: "The victim's session has been reset." });
         fetchState();
       } catch (error) {
-        toast({ variant: "destructive", title: "Error", description: "Could not reset state." });
+        toast({ variant: "destructive", title: "Error", description: "Could not reset victim session." });
       }
     }
   };
@@ -328,7 +328,7 @@ export function AdminDashboard() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline" size="icon" onClick={handleResetState}><History className="h-4 w-4" /></Button>
+                    <Button variant="outline" size="icon" onClick={handleResetVictimState}><History className="h-4 w-4" /></Button>
                     <Button variant="destructive" size="icon" onClick={handleClearVictimData} disabled={activeTab !== 'data'}>
                         <Trash2 className="h-4 w-4" />
                     </Button>
