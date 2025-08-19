@@ -16,6 +16,7 @@ export interface AppState {
     targetName: string;
     targetProfilePicture: string;
     attackMode: 'auto' | 'manual' | 'semi-auto';
+    isLocked: boolean;
   };
 }
 
@@ -37,6 +38,7 @@ export const appState: AppState = {
     targetName: 'John Doe',
     targetProfilePicture: '',
     attackMode: 'auto',
+    isLocked: false,
   },
 };
 

