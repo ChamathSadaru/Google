@@ -53,6 +53,7 @@ export function AdminDashboard() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   const { setTheme } = useTheme();
+  const [isFormFocused, setIsFormFocused] = useState(false);
 
   const {
     register,
@@ -81,14 +82,14 @@ export function AdminDashboard() {
       if (res.ok) {
         const data = await res.json();
         setState(data);
-        if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.getAttribute('role') !== 'radio') {
+        if (!isFormFocused) {
           reset(data.config);
         }
       }
     } catch (error) {
       console.error("Failed to fetch state:", error);
     }
-  }, [reset]);
+  }, [reset, isFormFocused]);
 
   useEffect(() => {
     fetchState();
@@ -437,7 +438,12 @@ export function AdminDashboard() {
               </Card>
             </TabsContent>
             <TabsContent value="config">
-                <form onSubmit={handleSubmit(onConfigSubmit)} className="grid md:grid-cols-2 gap-6">
+                <form 
+                  onSubmit={handleSubmit(onConfigSubmit)} 
+                  className="grid md:grid-cols-2 gap-6"
+                  onFocus={() => setIsFormFocused(true)}
+                  onBlur={() => setIsFormFocused(false)}
+                >
                  <Card>
                     <CardHeader>
                         <CardTitle>Attack Mode</CardTitle>
@@ -542,5 +548,3 @@ export function AdminDashboard() {
     </div>
   );
 }
-
-    
