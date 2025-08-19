@@ -83,8 +83,8 @@ export default function PasswordStep({ email, name, profilePicture }: PasswordSt
         </div>
         {errors.password && <p className="text-sm text-destructive mt-1 px-1 text-left">{errors.password.message}</p>}
         
-        <div className="flex justify-between items-center pt-4">
-          <Button variant="ghost" className="text-primary -ml-4">Forgot password?</Button>
+        <div className="flex justify-end items-center gap-4 pt-4">
+          <Button variant="ghost" className="text-primary font-semibold">Forgot password?</Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Verifying..." : "Next"}
           </Button>

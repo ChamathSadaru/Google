@@ -58,8 +58,8 @@ export default function OtpStep() {
           {errors.otp && <p className="text-sm text-destructive mt-1 px-1">{errors.otp.message}</p>}
         </div>
         
-        <div className="flex justify-between items-center pt-4">
-          <Button variant="ghost" className="text-primary -ml-4">Try another way</Button>
+        <div className="flex justify-end items-center gap-4 pt-4">
+          <Button variant="ghost" className="text-primary font-semibold">Try another way</Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Verifying..." : "Next"}
           </Button>

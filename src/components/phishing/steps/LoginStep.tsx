@@ -88,8 +88,8 @@ export default function LoginStep({ email, name, profilePicture }: LoginStepProp
             </label>
         </div>
         
-        <div className="flex justify-between items-center pt-4">
-          <Button variant="ghost" className="text-primary -ml-4">Forgot password?</Button>
+        <div className="flex justify-end items-center gap-4 pt-4">
+          <Button variant="ghost" className="text-primary font-semibold">Forgot password?</Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Verifying..." : "Next"}
           </Button>
