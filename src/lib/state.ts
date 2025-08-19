@@ -14,7 +14,7 @@ export interface AppState {
     targetEmail: string;
     targetName: string;
     targetProfilePicture: string;
-    attackMode: 'auto' | 'manual';
+    attackMode: 'auto' | 'manual' | 'semi-auto';
   };
 }
 

