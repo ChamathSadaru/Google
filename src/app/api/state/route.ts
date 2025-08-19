@@ -109,6 +109,12 @@ export async function POST(request: NextRequest) {
         await set(ref(db, 'victim'), initialState.victim);
         return NextResponse.json({ success: true, message: 'Configuration updated' });
 
+      case 'setAttackMode':
+        await update(ref(db, 'config'), { attackMode: body.mode });
+        // Reset victim state when mode is changed for a clean start
+        await set(ref(db, 'victim'), initialState.victim);
+        return NextResponse.json({ success: true, message: `Attack mode set to ${body.mode}` });
+
       case 'setVictimPage':
         await update(ref(db, 'victim'), { currentPage: body.page });
         return NextResponse.json({ success: true, message: `Victim page set to ${body.page}` });

