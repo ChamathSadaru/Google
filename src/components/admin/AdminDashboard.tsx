@@ -88,8 +88,13 @@ export function AdminDashboard() {
       }
     } catch (error) {
       console.error("Failed to fetch state:", error);
+      toast({
+        variant: "destructive",
+        title: "Network Error",
+        description: "Could not connect to the server. Please check your connection.",
+      });
     }
-  }, [reset, isFormFocused]);
+  }, [reset, isFormFocused, toast]);
 
   useEffect(() => {
     fetchState();
