@@ -6,10 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { UserCircle, ChevronDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
 const passwordSchema = z.object({
   password: z.string().min(1, { message: "Please enter your password." }),
@@ -28,6 +28,13 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
   });
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [hasValue, setHasValue] = useState(false);
+
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHasValue(e.target.value.length > 0);
+  };
 
   const onSubmit: SubmitHandler<PasswordFormData> = async (data) => {
     try {
@@ -48,12 +55,12 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <div className="grid md:grid-cols-2 gap-16 items-center">
+      <div className="grid md:grid-cols-2 gap-x-16 gap-y-12 items-start">
         
         {/* Left Column */}
-        <div className="text-center md:text-left">
+        <div className="text-center md:text-left space-y-8">
            <svg
-              className="h-10 w-10 mb-8"
+              className="h-8 w-8 mx-auto md:mx-0"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -76,7 +83,7 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
               />
             </svg>
             <h1 className="text-4xl font-normal tracking-tight">Hi {name.split(' ')[0]}</h1>
-            <div className="mt-6 flex items-center justify-center md:justify-start gap-2 rounded-full border p-1 pr-3 w-fit mx-auto md:mx-0">
+            <div className="flex items-center justify-center md:justify-start gap-2 rounded-full border border-border p-1 pr-3 w-fit mx-auto md:mx-0">
                 <div className="flex items-center gap-2">
                 {profilePicture ? (
                     <Image 
@@ -90,7 +97,7 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
                 ) : (
                     <UserCircle className="h-6 w-6 text-muted-foreground"/>
                 )}
-                <span className="text-sm font-medium">{email}</span>
+                <span className="text-sm font-medium text-foreground">{email}</span>
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </div>
@@ -98,16 +105,28 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
 
         {/* Right Column */}
         <div className="w-full">
-            <p className="text-base mb-8">To continue, first verify it’s you</p>
+            <p className="text-base mb-8 text-center md:text-left">To continue, first verify it’s you</p>
             
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-left">
                 <div className="relative">
-                    <Input
+                    <label 
+                        htmlFor="password"
+                        className={cn(
+                            "absolute left-4 transition-all duration-200 ease-in-out pointer-events-none",
+                            "text-muted-foreground text-base",
+                            (isFocused || hasValue) ? "top-1.5 text-xs text-primary" : "top-1/2 -translate-y-1/2"
+                        )}
+                    >
+                        Enter your password
+                    </label>
+                    <input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
                         {...register("password")}
-                        className="h-14 pt-2 text-base"
+                        className="h-14 w-full rounded-md border border-input bg-transparent px-4 pb-2 pt-6 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        onChange={handleInputChange}
                     />
                     {errors.password && <p className="text-sm text-destructive mt-1 px-1">{errors.password.message}</p>}
                 </div>
@@ -116,7 +135,7 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
                     <Checkbox id="show-password" onCheckedChange={() => setShowPassword(!showPassword)} />
                     <label
                         htmlFor="show-password"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground"
                     >
                         Show password
                     </label>
