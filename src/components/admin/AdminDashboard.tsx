@@ -1,4 +1,5 @@
 
+
       
 "use client";
 
@@ -17,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Trash2, UserCircle, Moon, Sun, UserX, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type } from "lucide-react";
+import { RefreshCw, Trash2, UserCircle, Moon, Sun, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import {
@@ -54,6 +55,7 @@ export function AdminDashboard() {
   const { toast } = useToast();
   const { setTheme } = useTheme();
   const [isFormFocused, setIsFormFocused] = useState(false);
+  const [activeTab, setActiveTab] = useState("live");
 
   const {
     register,
@@ -197,22 +199,6 @@ export function AdminDashboard() {
       });
     }
   };
-
-  const handleResetState = async () => {
-    if (window.confirm("Are you sure you want to reset the entire simulation state?")) {
-      try {
-        await fetch("/api/state", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "reset" }),
-        });
-        toast({ title: "State Reset", description: "The simulation has been reset." });
-        fetchState();
-      } catch (error) {
-        toast({ variant: "destructive", title: "Error", description: "Could not reset state." });
-      }
-    }
-  };
   
   const handleClearVictimData = async () => {
     if (window.confirm("Are you sure you want to clear all captured victim data? This cannot be undone.")) {
@@ -297,7 +283,7 @@ export function AdminDashboard() {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-2 sm:p-4">
-        <Tabs defaultValue="live" className="w-full">
+        <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                 <TabsList className="grid w-full sm:w-fit grid-cols-3">
                     <TabsTrigger value="live">Live Dashboard</TabsTrigger>
@@ -326,8 +312,9 @@ export function AdminDashboard() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <Button variant="outline" size="icon" onClick={fetchState}><RefreshCw className="h-4 w-4" /></Button>
-                    <Button variant="outline" size="icon" onClick={handleClearVictimData}><UserX className="h-4 w-4" /></Button>
-                    <Button variant="destructive" size="icon" onClick={handleResetState}><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="destructive" size="icon" onClick={handleClearVictimData} disabled={activeTab !== 'data'}>
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
                 </div>
             </div>
 
@@ -597,3 +584,4 @@ export function AdminDashboard() {
 }
 
     
+
