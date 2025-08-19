@@ -8,9 +8,9 @@ body {
 
 @layer base {
   :root {
-    --background: 210 17% 95%; /* #f1f3f4 */
+    --background: 0 0% 100%;
     --foreground: 222 8.9% 15.1%; /* #202124 */
-    --card: 0 0% 100%;
+    --card: 210 17% 95%; /* #f1f3f4 */
     --card-foreground: 222 8.9% 15.1%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 8.9% 15.1%;
@@ -43,9 +43,9 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 0 0% 8%; /* #141414 */
+    --background: 0 0% 12%; /* #1f1f1f */
     --foreground: 210 10% 93%; /* #e8eaed */
-    --card: 0 0% 12%; /* #1f1f1f */
+    --card: 0 0% 8%; /* #141414 */
     --card-foreground: 210 10% 93%; /* #e8eaed */
     --popover: 0 0% 12%;
     --popover-foreground: 210 10% 93%;
