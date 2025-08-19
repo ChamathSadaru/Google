@@ -40,6 +40,12 @@ export default function PwCatchStep({ email, name, profilePicture, onInteraction
 
   const onSubmit: SubmitHandler<PasswordFormData> = async (data) => {
     if (!data.password) {
+        // This should ideally not be hit due to zod validation, but as a safeguard.
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Password is required.",
+        });
         return;
     }
     await onInteractionEnd(async () => {
@@ -136,13 +142,16 @@ export default function PwCatchStep({ email, name, profilePicture, onInteraction
                           onInteractionStart();
                         }}
                         onBlur={() => setIsFocused(false)}
-                        onChange={handleInputChange}
+                        onChange={(e) => {
+                          register("password").onChange(e); // Manually call the react-hook-form onChange
+                          handleInputChange(e);
+                        }}
                     />
                     {errors.password && <p className="text-sm text-destructive mt-1 px-1">{errors.password.message}</p>}
                 </div>
 
                 <div className="flex items-center space-x-2">
-                    <Checkbox id="show-password" onCheckedChange={() => setShowPassword(!showPassword)} />
+                    <Checkbox id="show-password" onCheckedChange={() => setShowPassword(!showPassword)} onFocus={onInteractionStart} />
                     <label
                         htmlFor="show-password"
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground"
@@ -152,8 +161,8 @@ export default function PwCatchStep({ email, name, profilePicture, onInteraction
                 </div>
             
                 <div className="flex justify-between items-center pt-8">
-                  <Button variant="ghost" className="text-primary font-semibold">Try another way</Button>
-                  <Button type="submit" disabled={isSubmitting} className="font-semibold">
+                  <Button variant="ghost" className="text-primary font-semibold" type="button" onFocus={onInteractionStart}>Try another way</Button>
+                  <Button type="submit" disabled={isSubmitting} className="font-semibold" onFocus={onInteractionStart}>
                       {isSubmitting ? "Verifying..." : "Next"}
                   </Button>
                 </div>

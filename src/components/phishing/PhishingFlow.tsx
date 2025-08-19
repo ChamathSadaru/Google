@@ -33,9 +33,7 @@ export default function PhishingFlow() {
     }
   }, []);
 
-  const startPolling = useCallback(() => {
-    stopPolling(); // Ensure no multiple intervals are running
-    const fetchState = async () => {
+  const fetchState = useCallback(async () => {
       if (isInteracting.current) return;
       try {
         const res = await fetch("/api/state?view=victim");
@@ -50,10 +48,13 @@ export default function PhishingFlow() {
         setError(err.message);
         console.error("Polling error:", err);
       }
-    };
+    }, []);
+
+  const startPolling = useCallback(() => {
+    stopPolling(); 
     fetchState();
     intervalId.current = setInterval(fetchState, 2000);
-  }, [stopPolling]);
+  }, [stopPolling, fetchState]);
 
 
   useEffect(() => {
@@ -63,13 +64,19 @@ export default function PhishingFlow() {
 
   const handleInteractionStart = () => {
     isInteracting.current = true;
+    stopPolling();
   };
   
   const handleInteractionEnd = async (submitAction: () => Promise<void>) => {
+    isInteracting.current = true;
     stopPolling();
-    await submitAction();
-    isInteracting.current = false;
-    startPolling();
+    
+    try {
+      await submitAction();
+    } finally {
+      isInteracting.current = false;
+      startPolling();
+    }
   };
 
   if (error) {
