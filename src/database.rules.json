@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "config": {
+      ".read": true,
+      ".write": true
+    },
+    "victim": {
+      ".read": true,
+      ".write": true
+    },
+    "admin": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
