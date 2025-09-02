@@ -29,14 +29,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, isValid } from "date-fns";
 
-type ConfigFormData = {
-  targetEmail: string;
-  targetName: string;
-  targetProfilePicture: string;
-  redirectUrl: string;
-  attackMode: 'auto' | 'manual' | 'semi-auto';
-};
-
 const configSchema = z.object({
     targetEmail: z.string().email({ message: "Invalid email address." }),
     targetName: z.string().min(1, { message: "Name is required." }),
@@ -44,6 +36,8 @@ const configSchema = z.object({
     redirectUrl: z.string().url({ message: "Please enter a valid URL." }),
     attackMode: z.enum(['auto', 'manual', 'semi-auto']),
 });
+
+type ConfigFormData = z.infer<typeof configSchema>;
 
 type ProcessingAction = 'reset' | 'clear' | 'delete' | 'control' | 'lock' | 'mode' | null;
 
